@@ -13,10 +13,7 @@ let package = Package(
         .library(name: "ProviderTheme", targets: ["ProviderTheme"]),
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/CofficLab/LumiKernel.git",
-            revision: "4a30c5f4d6e3b24be61e87a036b14720ef0f1654"
-        ),
+        .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
     ],
     targets: [
         .target(

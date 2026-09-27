@@ -36,11 +36,13 @@ public final class DefaultThemeProviding: ThemeProviding {
     ///     传入宿主的 `StorageProviding.pluginDataDirectory(for:)` 以遵循 Storage 约定；
     ///     为 `nil` 时回退到 `<Application Support>/<bundleID>/ThemeManager/`。
     ///   - builtinThemes: 初始化时预注册的主题；默认注册全部内置主题。
+    ///   - defaultStorageDirectoryName: 未注入 `storageDirectory` 时使用的目录名。
     public init(
         storageDirectory: URL? = nil,
-        builtinThemes: [LumiTheme] = BuiltinThemes.all
+        builtinThemes: [LumiTheme] = BuiltinThemes.all,
+        defaultStorageDirectoryName: String = "ThemeManager"
     ) {
-        let resolved = storageDirectory ?? Self.defaultStorageDirectory
+        let resolved = storageDirectory ?? Self.defaultStorageDirectory(name: defaultStorageDirectoryName)
         self.storageURL = resolved.appendingPathComponent("theme-selection.plist", isDirectory: false)
 
         for theme in builtinThemes {
@@ -189,14 +191,14 @@ public final class DefaultThemeProviding: ThemeProviding {
 
     // MARK: - Default directory resolution
 
-    /// 默认持久化目录：`<Application Support>/<bundleID>/ThemeManager/`。
-    private static var defaultStorageDirectory: URL {
+    /// 默认持久化目录：`<Application Support>/<bundleID>/<name>/`。
+    private static func defaultStorageDirectory(name: String) -> URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         let bundleID = Bundle.main.bundleIdentifier ?? "com.coffic.Lumi"
         return base
             .appendingPathComponent(bundleID, isDirectory: true)
-            .appendingPathComponent(Self.pluginName, isDirectory: true)
+            .appendingPathComponent(name, isDirectory: true)
     }
 
     /// 读取持久化的选中主题 id；文件缺失或损坏时返回 `nil`。

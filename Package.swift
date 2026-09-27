@@ -42,7 +42,8 @@ let package = Package(
         ),
         .target(
             name: "ProviderTheme",
-            path: "Sources/ProviderTheme"
+            path: "Sources/ProviderTheme",
+            resources: [.process("../../Resources/Localizable.xcstrings")]
         ),
         .testTarget(
             name: "ProviderThemeTests",

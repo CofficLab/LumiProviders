@@ -27,6 +27,18 @@ struct ProviderToastTests {
         #expect(a.style == .warning)
     }
 
+    @Test("LumiErrorNotice 可创建且 Equatable")
+    func errorNoticeValueSemantics() {
+        let id = UUID()
+        let a = LumiErrorNotice(id: id, title: "错误", message: "详细信息")
+        let b = LumiErrorNotice(id: id, title: "错误", message: "详细信息")
+
+        #expect(a == b)
+        #expect(a.id == id)
+        #expect(a.title == "错误")
+        #expect(a.message == "详细信息")
+    }
+
     @Test("便捷 show 方法构造正确的 LumiToast")
     func convenienceShowBuildsToast() {
         let provider = RecordingToastProvider()

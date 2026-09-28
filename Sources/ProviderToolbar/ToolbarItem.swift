@@ -90,6 +90,8 @@ public struct IOSNavigationBarItem: Identifiable {
     public let title: String
     public let placement: IOSNavigationBarPlacement
     public let category: ToolbarItemCategory
+    /// The plugin that owns this contribution, used to hide it while the plugin is disabled.
+    public var ownerPluginID: String?
     public var order: Int
     public let makeView: @MainActor () -> AnyView
 
@@ -98,6 +100,7 @@ public struct IOSNavigationBarItem: Identifiable {
         title: String,
         placement: IOSNavigationBarPlacement = .trailing,
         category: ToolbarItemCategory = .global,
+        ownerPluginID: String? = nil,
         order: Int = 200,
         @ViewBuilder content: @escaping @MainActor () -> Content
     ) {
@@ -105,6 +108,7 @@ public struct IOSNavigationBarItem: Identifiable {
         self.title = title
         self.placement = placement
         self.category = category
+        self.ownerPluginID = ownerPluginID
         self.order = order
         self.makeView = { AnyView(content()) }
     }

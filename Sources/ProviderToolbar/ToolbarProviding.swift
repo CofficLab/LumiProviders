@@ -24,8 +24,19 @@ public protocol ToolbarObserverHandle: AnyObject {
     func cancel()
 }
 
+/// Receives the current plugin enablement state so providers can hide contributions
+/// from disabled plugins on every supported platform.
 @MainActor
-public protocol ToolbarProviding: AnyObject {
+public protocol ToolbarPluginStateProviding: AnyObject {
+    func setPluginState(knownPluginIDs: Set<String>, disabledPluginIDs: Set<String>)
+}
+
+public extension ToolbarPluginStateProviding {
+    func setPluginState(knownPluginIDs: Set<String>, disabledPluginIDs: Set<String>) {}
+}
+
+@MainActor
+public protocol ToolbarProviding: AnyObject, ToolbarPluginStateProviding {
     @discardableResult
     func addToolbarObserver(
         _ callback: @escaping (ToolbarEvent) -> Void
@@ -86,7 +97,7 @@ public typealias MacToolbarProviding = ToolbarProviding
 
 /// iOS 顶部导航栏提供能力协议。
 @MainActor
-public protocol IOSNavigationBarProviding: AnyObject, ObservableObject
+public protocol IOSNavigationBarProviding: AnyObject, ObservableObject, ToolbarPluginStateProviding
     where ObjectWillChangePublisher == ObservableObjectPublisher {
     var navigationBarItems: [IOSNavigationBarItem] { get }
     var visibleCategories: Set<ToolbarItemCategory> { get }

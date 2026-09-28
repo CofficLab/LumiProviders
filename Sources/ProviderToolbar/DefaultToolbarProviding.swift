@@ -24,6 +24,8 @@ public final class DefaultToolbarProviding: ToolbarProviding {
 
     private var baseVisibleCategories: Set<ToolbarItemCategory>
     private var hiddenCategoriesBySource: [String: Set<ToolbarItemCategory>] = [:]
+    private var knownPluginIDs: Set<String> = []
+    private var disabledPluginIDs: Set<String> = []
 
     public init(visibleCategories: Set<ToolbarItemCategory> = Set(ToolbarItemCategory.allCases)) {
         self.visibleCategories = visibleCategories
@@ -43,6 +45,17 @@ public final class DefaultToolbarProviding: ToolbarProviding {
 
     public func registerToolbarItems(_ items: [ToolbarItem]) {
         toolbarItems = items
+        notify(.toolbarItemsChanged)
+    }
+
+    public var visibleToolbarItems: [ToolbarItem] {
+        toolbarItems.filter { visibleCategories.contains($0.category) && isDisplayable($0.ownerPluginID, itemID: $0.id) }
+    }
+
+    public func setPluginState(knownPluginIDs: Set<String>, disabledPluginIDs: Set<String>) {
+        guard self.knownPluginIDs != knownPluginIDs || self.disabledPluginIDs != disabledPluginIDs else { return }
+        self.knownPluginIDs = knownPluginIDs
+        self.disabledPluginIDs = disabledPluginIDs
         notify(.toolbarItemsChanged)
     }
 
@@ -75,6 +88,17 @@ public final class DefaultToolbarProviding: ToolbarProviding {
         observers.values.forEach { $0(event) }
     }
 
+    private func isDisplayable(_ explicitOwnerID: String?, itemID: String) -> Bool {
+        guard let ownerID = explicitOwnerID ?? inferredOwnerPluginID(for: itemID) else { return true }
+        return !disabledPluginIDs.contains(ownerID)
+    }
+
+    private func inferredOwnerPluginID(for itemID: String) -> String? {
+        knownPluginIDs
+            .filter { itemID.hasPrefix($0 + ".") }
+            .max { $0.count < $1.count }
+    }
+
     private final class ObserverHandle: ToolbarObserverHandle {
         private var cancellation: (() -> Void)?
 
@@ -104,6 +128,8 @@ public final class DefaultIOSNavigationBarProviding: IOSNavigationBarProviding, 
 
     private var baseVisibleCategories: Set<ToolbarItemCategory>
     private var hiddenCategoriesBySource: [String: Set<ToolbarItemCategory>] = [:]
+    private var knownPluginIDs: Set<String> = []
+    private var disabledPluginIDs: Set<String> = []
 
     public init(visibleCategories: Set<ToolbarItemCategory> = Set(ToolbarItemCategory.allCases)) {
         self.visibleCategories = visibleCategories
@@ -112,6 +138,19 @@ public final class DefaultIOSNavigationBarProviding: IOSNavigationBarProviding, 
 
     public func registerNavigationBarItems(_ items: [IOSNavigationBarItem]) {
         navigationBarItems = items
+    }
+
+    public var visibleNavigationBarItems: [IOSNavigationBarItem] {
+        navigationBarItems.filter {
+            visibleCategories.contains($0.category) && isDisplayable($0.ownerPluginID, itemID: $0.id)
+        }
+    }
+
+    public func setPluginState(knownPluginIDs: Set<String>, disabledPluginIDs: Set<String>) {
+        guard self.knownPluginIDs != knownPluginIDs || self.disabledPluginIDs != disabledPluginIDs else { return }
+        self.knownPluginIDs = knownPluginIDs
+        self.disabledPluginIDs = disabledPluginIDs
+        objectWillChange.send()
     }
 
     public func setVisibleCategories(_ categories: Set<ToolbarItemCategory>) {
@@ -133,13 +172,29 @@ public final class DefaultIOSNavigationBarProviding: IOSNavigationBarProviding, 
         let hiddenCategories = hiddenCategoriesBySource.values.reduce(into: Set<ToolbarItemCategory>()) {
             $0.formUnion($1)
         }
-        visibleCategories = baseVisibleCategories.subtracting(hiddenCategories)
+        let nextCategories = baseVisibleCategories.subtracting(hiddenCategories)
+        guard visibleCategories != nextCategories else { return }
+        visibleCategories = nextCategories
+    }
+
+    private func isDisplayable(_ explicitOwnerID: String?, itemID: String) -> Bool {
+        guard let ownerID = explicitOwnerID ?? inferredOwnerPluginID(for: itemID) else { return true }
+        return !disabledPluginIDs.contains(ownerID)
+    }
+
+    private func inferredOwnerPluginID(for itemID: String) -> String? {
+        knownPluginIDs
+            .filter { itemID.hasPrefix($0 + ".") }
+            .max { $0.count < $1.count }
     }
 }
 
 /// 按 placement 渲染工具栏项的视图。
 private struct ToolbarView: View {
     @LumiTheme private var theme
+#if os(macOS)
+    @StateObject private var windowState = ToolbarWindowState()
+#endif
 
     let provider: DefaultToolbarProviding
     @State private var observationRevision = 0
@@ -149,11 +204,20 @@ private struct ToolbarView: View {
     private let height: CGFloat = 44
     private let trafficLightReserveWidth: CGFloat = 76
 
+    private var leadingInset: CGFloat {
+#if os(macOS)
+        windowState.isFullScreen ? 0 : trafficLightReserveWidth
+#else
+        16
+#endif
+    }
+
     var body: some View {
         let items = provider.visibleToolbarItems
         let leading = items.filter { $0.placement == .leading }
         let center = items.filter { $0.placement == .center }
         let trailing = items.filter { $0.placement == .trailing }
+        let leadingInset = self.leadingInset
 
         AppToolbarContainer(
             height: height,
@@ -162,7 +226,7 @@ private struct ToolbarView: View {
         ) {
             ZStack {
                 #if os(macOS)
-                WindowDragRegion()
+                WindowDragRegion(windowState: windowState)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 #endif
 
@@ -170,7 +234,7 @@ private struct ToolbarView: View {
                     // 红绿灯预留：hiddenTitleBar 下红绿灯悬浮于左上角，
                     // leading 项从此宽度之后开始排布（与旧版完全一致）。
                     Color.clear
-                        .frame(width: trafficLightReserveWidth, height: height)
+                        .frame(width: leadingInset, height: height)
                         .accessibilityHidden(true)
 
                     group(leading)
@@ -185,7 +249,7 @@ private struct ToolbarView: View {
                 // center 项绝对居中，maxWidth 420，并左右留出红绿灯空间。
                 group(center)
                     .frame(maxWidth: 420)
-                    .padding(.horizontal, trafficLightReserveWidth + 12)
+                    .padding(.horizontal, leadingInset + 12)
             }
             .frame(height: height)
             .frame(maxWidth: .infinity)
@@ -218,17 +282,96 @@ private struct ToolbarView: View {
 
 #if os(macOS)
 /// 整条工具栏的窗口拖拽区：与旧版 `AppTitleToolbar` 的拖拽行为一致。
+@MainActor
 private struct WindowDragRegion: NSViewRepresentable {
+    let windowState: ToolbarWindowState
+
     func makeNSView(context: Context) -> DragRegionView {
-        DragRegionView()
+        DragRegionView(windowState: windowState)
     }
 
-    func updateNSView(_ nsView: DragRegionView, context: Context) {}
+    func updateNSView(_ nsView: DragRegionView, context: Context) {
+        windowState.attach(to: nsView.window)
+    }
 }
 
+@MainActor
 private final class DragRegionView: NSView {
+    private let windowState: ToolbarWindowState
+
+    init(windowState: ToolbarWindowState) {
+        self.windowState = windowState
+        super.init(frame: .zero)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        windowState.attach(to: window)
+    }
+
     override var mouseDownCanMoveWindow: Bool {
         true
+    }
+}
+
+/// Tracks the host window so title-bar spacing does not leak into full screen.
+@MainActor
+private final class ToolbarWindowState: NSObject, ObservableObject {
+    @Published private(set) var isFullScreen = false
+
+    private weak var window: NSWindow?
+    private var refreshScheduled = false
+
+    func attach(to window: NSWindow?) {
+        guard self.window !== window else {
+            refresh()
+            return
+        }
+
+        NotificationCenter.default.removeObserver(self)
+        self.window = window
+        refresh()
+
+        guard let window else { return }
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleFullScreenChange),
+            name: NSWindow.didEnterFullScreenNotification,
+            object: window
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleFullScreenChange),
+            name: NSWindow.didExitFullScreenNotification,
+            object: window
+        )
+    }
+
+    @objc private func handleFullScreenChange() {
+        refresh()
+    }
+
+    private func refresh() {
+        let nextValue = window?.styleMask.contains(.fullScreen) == true
+        guard isFullScreen != nextValue, !refreshScheduled else { return }
+
+        refreshScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.refreshScheduled = false
+            let currentValue = self.window?.styleMask.contains(.fullScreen) == true
+            guard self.isFullScreen != currentValue else { return }
+            self.isFullScreen = currentValue
+        }
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 }
 #endif

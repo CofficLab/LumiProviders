@@ -189,4 +189,48 @@ struct ProviderToolbarTests {
         provider.setHiddenCategories([], for: "message-list.empty-state")
         #expect(provider.visibleCategories == [.global, .chat, .project])
     }
+
+    @Test("禁用插件会隐藏它贡献的 macOS 工具栏项，重新启用后恢复")
+    func disabledPluginHidesAndRestoresMacToolbarItems() {
+        let provider = DefaultToolbarProviding()
+        provider.registerToolbarItems([
+            ProviderToolbar.ToolbarItem(
+                id: "settings.open",
+                title: "Settings",
+                ownerPluginID: "app.settings"
+            ) { Text("Settings") },
+            ProviderToolbar.ToolbarItem(id: "host.help", title: "Help") { Text("Help") },
+        ])
+
+        provider.setPluginState(
+            knownPluginIDs: ["app.settings", "app.help"],
+            disabledPluginIDs: ["app.settings"]
+        )
+        #expect(provider.visibleToolbarItems.map(\.id) == ["host.help"])
+
+        provider.setPluginState(knownPluginIDs: ["app.settings", "app.help"], disabledPluginIDs: [])
+        #expect(provider.visibleToolbarItems.map(\.id) == ["settings.open", "host.help"])
+    }
+
+    @Test("禁用插件会隐藏它贡献的 iOS 导航栏项，重新启用后恢复")
+    func disabledPluginHidesAndRestoresIOSNavigationItems() {
+        let provider = DefaultIOSNavigationBarProviding()
+        provider.registerNavigationBarItems([
+            IOSNavigationBarItem(
+                id: "app.settings.open",
+                title: "Settings",
+                ownerPluginID: "app.settings"
+            ) { Text("Settings") },
+            IOSNavigationBarItem(id: "host.help", title: "Help") { Text("Help") },
+        ])
+
+        provider.setPluginState(
+            knownPluginIDs: ["app.settings", "app.help"],
+            disabledPluginIDs: ["app.settings"]
+        )
+        #expect(provider.visibleNavigationBarItems.map(\.id) == ["host.help"])
+
+        provider.setPluginState(knownPluginIDs: ["app.settings", "app.help"], disabledPluginIDs: [])
+        #expect(provider.visibleNavigationBarItems.map(\.id) == ["app.settings.open", "host.help"])
+    }
 }

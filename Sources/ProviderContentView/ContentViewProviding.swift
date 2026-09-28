@@ -30,11 +30,32 @@ public protocol ContentViewProviding: AnyObject {
     /// 设置当前主内容视图（传 `nil` 表示清空，回退到占位）。
     func setContentView(_ view: AnyView?)
 
+    /// 兼容旧版多内容区 API：注册一块按顺序排列的内容。
+    func addContentView(_ view: AnyView, id: String, order: Int)
+
+    /// 兼容旧版多内容区 API：移除指定内容块。
+    func removeContentView(id: String)
+
+    /// 兼容旧版多内容区 API：移除全部内容块。
+    func removeAllContentView()
+
     /// 返回当前主内容视图；未设置时返回占位视图。
     func makeContentView() -> AnyView
 }
 
 public extension ContentViewProviding {
+    func addContentView(_ view: AnyView, id: String, order: Int) {
+        setContentView(view)
+    }
+
+    func removeContentView(id: String) {
+        setContentView(nil)
+    }
+
+    func removeAllContentView() {
+        setContentView(nil)
+    }
+
     @discardableResult
     func addContentViewObserver(
         _ callback: @escaping (ContentViewEvent) -> Void

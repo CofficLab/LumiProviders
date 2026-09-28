@@ -6,7 +6,14 @@ import SwiftUI
 /// 未设置时 `makeContentView()` 返回占位提示。
 @MainActor
 public final class DefaultContentViewProviding: ContentViewProviding {
+    private struct Entry: Identifiable {
+        let id: String
+        let order: Int
+        let view: AnyView
+    }
+
     fileprivate var contentView: AnyView?
+    private var entries: [Entry] = []
     private var observers: [UUID: (ContentViewEvent) -> Void] = [:]
 
     public init() {}
@@ -23,12 +30,50 @@ public final class DefaultContentViewProviding: ContentViewProviding {
     }
 
     public func setContentView(_ view: AnyView?) {
+        entries.removeAll()
         contentView = view
+        observers.values.forEach { $0(.contentChanged) }
+    }
+
+    public func addContentView(_ view: AnyView, id: String, order: Int) {
+        var updated = entries.filter { $0.id != id }
+        updated.append(Entry(id: id, order: order, view: view))
+        updated.sort { $0.order < $1.order }
+        entries = updated
+        contentView = nil
+        observers.values.forEach { $0(.contentChanged) }
+    }
+
+    public func removeContentView(id: String) {
+        let originalCount = entries.count
+        entries.removeAll { $0.id == id }
+        guard entries.count != originalCount else { return }
+        observers.values.forEach { $0(.contentChanged) }
+    }
+
+    public func removeAllContentView() {
+        guard !entries.isEmpty || contentView != nil else { return }
+        entries.removeAll()
+        contentView = nil
         observers.values.forEach { $0(.contentChanged) }
     }
 
     public func makeContentView() -> AnyView {
         AnyView(ContentHostView(provider: self))
+    }
+
+    fileprivate var renderedContent: AnyView? {
+        if entries.isEmpty {
+            return contentView
+        }
+
+        return AnyView(
+            VStack(spacing: 0) {
+                ForEach(entries) { entry in
+                    entry.view
+                }
+            }
+        )
     }
 
     private final class ObserverHandle: ContentViewObserverHandle {
@@ -53,7 +98,7 @@ private struct ContentHostView: View {
 
     var body: some View {
         Group {
-            if let contentView = provider.contentView {
+            if let contentView = provider.renderedContent {
                 contentView
             } else {
                 ContentPlaceholderView()

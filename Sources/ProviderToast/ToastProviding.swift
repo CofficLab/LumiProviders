@@ -49,6 +49,18 @@ public protocol ToastProviding: AnyObject {
     func dismissError()
 }
 
+/// 可选的持续加载状态能力。
+///
+/// 通过独立协议保持 `ToastProviding` 的向后兼容性：只需要普通 Toast 的
+/// 实现无需增加 loading 状态；完整的共享 Toast 插件实现此协议。
+@MainActor
+public protocol ToastLoadingProviding: ToastProviding {
+    var currentLoading: LumiLoadingNotice? { get }
+    func showLoading(title: String, detail: String?)
+    func dismissLoading()
+    func dismissAll()
+}
+
 // MARK: - 默认实现
 
 public extension ToastProviding {
@@ -69,5 +81,26 @@ public extension ToastProviding {
         duration: TimeInterval? = nil
     ) {
         show(LumiToast(title: title, detail: detail, style: style, duration: duration))
+    }
+
+    /// 兼容旧版 Cisum 的加载接口；不支持 loading 的 Provider 安静忽略。
+    var currentLoading: LumiLoadingNotice? {
+        (self as? any ToastLoadingProviding)?.currentLoading
+    }
+
+    func showLoading(title: String, detail: String?) {
+        (self as? any ToastLoadingProviding)?.showLoading(title: title, detail: detail)
+    }
+
+    func dismissLoading() {
+        (self as? any ToastLoadingProviding)?.dismissLoading()
+    }
+
+    func dismissAll() {
+        if let provider = self as? any ToastLoadingProviding {
+            provider.dismissAll()
+        } else {
+            dismissError()
+        }
     }
 }

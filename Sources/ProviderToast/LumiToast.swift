@@ -47,6 +47,20 @@ public struct LumiErrorNotice: Identifiable, Sendable, Equatable {
     }
 }
 
+/// 一条持续显示的加载状态。
+///
+/// 加载状态属于比基础 Toast 更高阶的宿主能力，因此通过
+/// `ToastLoadingProviding` 暴露；不要求所有只实现瞬时提示的 Provider 都实现它。
+public struct LumiLoadingNotice: Sendable, Equatable {
+    public let title: String
+    public let detail: String?
+
+    public init(title: String, detail: String? = nil) {
+        self.title = title
+        self.detail = detail
+    }
+}
+
 /// Toast 的展示风格。
 public enum LumiToastStyle: String, Sendable {
     case info
@@ -54,3 +68,18 @@ public enum LumiToastStyle: String, Sendable {
     case warning
     case error
 }
+
+// MARK: - Cisum compatibility aliases
+
+/// Cisum 在迁移到 Lumi 共享 Toast 契约期间使用的兼容名称。
+@available(*, deprecated, message: "Use LumiToast instead.")
+public typealias CisumToast = LumiToast
+
+@available(*, deprecated, message: "Use LumiErrorNotice instead.")
+public typealias CisumErrorNotice = LumiErrorNotice
+
+@available(*, deprecated, message: "Use LumiLoadingNotice instead.")
+public typealias CisumLoadingNotice = LumiLoadingNotice
+
+@available(*, deprecated, message: "Use LumiToastStyle instead.")
+public typealias CisumToastStyle = LumiToastStyle

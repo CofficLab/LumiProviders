@@ -8,8 +8,9 @@ import Testing
 struct ProviderToastTests {
 
     /// 测试用实现：记录收到的 Toast。
-    private final class RecordingToastProvider: ToastProviding {
+    private final class RecordingToastProvider: ToastLoadingProviding {
         var received: [LumiToast] = []
+        var loading: LumiLoadingNotice?
 
         func show(_ toast: LumiToast) {
             received.append(toast)
@@ -18,6 +19,11 @@ struct ProviderToastTests {
         func presentError(title: String, message: String) {}
 
         func dismissError() {}
+        func showLoading(title: String, detail: String?) {
+            loading = LumiLoadingNotice(title: title, detail: detail)
+        }
+        func dismissLoading() { loading = nil }
+        func dismissAll() { loading = nil }
     }
 
     @Test("LumiToast 可创建且 Equatable")
@@ -73,6 +79,18 @@ struct ProviderToastTests {
 
         provider.presentError(title: "错误", message: "详细信息")
         provider.dismissError()
+    }
+
+    @Test("ToastLoadingProviding 提供兼容的 loading 能力")
+    func loadingMethodsAreAvailable() {
+        let provider = RecordingToastProvider()
+
+        provider.showLoading(title: "加载中", detail: "正在准备")
+
+        #expect(provider.loading?.title == "加载中")
+        #expect(provider.loading?.detail == "正在准备")
+        provider.dismissLoading()
+        #expect(provider.loading == nil)
     }
 
     // MARK: - DefaultToastProviding

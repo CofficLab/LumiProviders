@@ -93,6 +93,9 @@ public final class DefaultToolbarProviding: ToolbarProviding {
     }
 }
 
+/// macOS 工具栏默认实现的兼容名称。
+public typealias DefaultMacToolbarProviding = DefaultToolbarProviding
+
 /// iOS 顶部导航栏的默认实现。
 @MainActor
 public final class DefaultIOSNavigationBarProviding: IOSNavigationBarProviding, ObservableObject {

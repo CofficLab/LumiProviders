@@ -81,6 +81,9 @@ public extension ToolbarProviding {
     }
 }
 
+/// 明确区分 macOS 工具栏时使用的兼容名称。
+public typealias MacToolbarProviding = ToolbarProviding
+
 /// iOS 顶部导航栏提供能力协议。
 @MainActor
 public protocol IOSNavigationBarProviding: AnyObject, ObservableObject

@@ -199,6 +199,9 @@ public protocol RootViewProviding: AnyObject, ObservableObject {
     func makeRootView() -> AnyView
 }
 
+/// Compatibility name used by older Lumi/Cisum factories.
+public typealias DefaultRootViewProvider = DefaultRootViewProviding
+
 public extension RootViewProviding {
     func view(for region: RootViewRegion) -> AnyView? { nil }
     func setView(_ view: AnyView?, for region: RootViewRegion) {}
@@ -209,6 +212,11 @@ public extension RootViewProviding {
     var overlays: [RootOverlayItem] { [] }
     func addOverlays(_ overlays: [RootOverlayItem]) {}
     func removeOverlays(ids: Set<String>) {}
+
+    /// Compatibility overload retained for older Lumi/Cisum hosts.
+    func removeOverlays(ids: [String]) {
+        removeOverlays(ids: Set(ids))
+    }
 
     func addRootViewObserver(
         _ callback: @escaping (RootViewEvent) -> Void
@@ -237,6 +245,13 @@ public extension RootViewProviding {
     func setContentView(_ view: AnyView?) { setView(view, for: .content) }
     var isContentViewHidden: Bool { false }
     func setContentViewHidden(_ hidden: Bool) { setRegionHidden(hidden, for: .content) }
+
+    /// Compatibility visibility helpers retained for older desktop hosts.
+    var isContentViewVisible: Bool { !isContentViewHidden }
+    func setContentViewVisible(_ visible: Bool) { setContentViewHidden(!visible) }
+    func showContentView() { setContentViewVisible(true) }
+    func hideContentView() { setContentViewVisible(false) }
+    func toggleContentView() { setContentViewVisible(!isContentViewVisible) }
 
     func setContentFooterView(_ view: AnyView?) { setView(view, for: .contentFooter) }
     var isContentFooterViewHidden: Bool { false }

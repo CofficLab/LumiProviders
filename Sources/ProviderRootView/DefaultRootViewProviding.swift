@@ -29,6 +29,12 @@ open class DefaultRootViewProviding: RootViewProviding {
 
     public init() {}
 
+    /// Compatibility initializer retained for older factories that passed the
+    /// application kernel while constructing the root provider.
+    public convenience init<Kernel>(kernel: Kernel) {
+        self.init()
+    }
+
     open func view(for region: RootViewRegion) -> AnyView? {
         views[region]
     }

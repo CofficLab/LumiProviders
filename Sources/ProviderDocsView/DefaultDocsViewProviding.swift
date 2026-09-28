@@ -50,3 +50,6 @@ public final class DefaultDocsViewProviding: DocsViewProviding {
         }
     }
 }
+
+/// Compatibility name used by older Lumi/Cisum factories.
+public typealias DefaultDocsViewProvider = DefaultDocsViewProviding

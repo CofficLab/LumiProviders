@@ -15,6 +15,22 @@ public enum ContentViewEvent {
     case contentChanged
 }
 
+/// Compatibility tab contribution used by older Lumi/Cisum hosts.
+@MainActor
+public struct ContentTabItem: Identifiable {
+    public let id: String
+    public let title: String
+    public let order: Int
+    public let content: AnyView
+
+    public init(id: String, title: String, order: Int, content: AnyView) {
+        self.id = id
+        self.title = title
+        self.order = order
+        self.content = content
+    }
+}
+
 @MainActor
 public protocol ContentViewObserverHandle: AnyObject {
     func cancel()
@@ -44,6 +60,17 @@ public protocol ContentViewProviding: AnyObject {
 }
 
 public extension ContentViewProviding {
+    /// Compatibility adapter for the older multi-tab content contract.
+    /// The shared provider renders the contributions in order as one content
+    /// host, preserving the old injection point without reintroducing a local
+    /// provider implementation in each app.
+    func setTabs(_ tabs: [ContentTabItem]) {
+        removeAllContentView()
+        for tab in tabs.sorted(by: { $0.order < $1.order }) {
+            addContentView(tab.content, id: tab.id, order: tab.order)
+        }
+    }
+
     func addContentView(_ view: AnyView, id: String, order: Int) {
         setContentView(view)
     }

@@ -90,6 +90,9 @@ public final class DefaultContentViewProviding: ContentViewProviding {
     }
 }
 
+/// Compatibility name used by older Lumi/Cisum factories.
+public typealias DefaultContentViewProvider = DefaultContentViewProviding
+
 /// 稳定挂在 RootView 中并观察 Provider；后续 `setContentView` 会直接刷新内容区。
 private struct ContentHostView: View {
     let provider: DefaultContentViewProviding

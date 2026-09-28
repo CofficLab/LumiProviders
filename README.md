@@ -5,10 +5,15 @@ Shared provider contracts and default implementations used by Coffic Lab apps.
 ## Products
 
 - `ProviderCommand`: application command registration and dispatch contracts.
+- `ProviderContentView`: main content view registration and rendering.
+- `ProviderDocsView`: plugin-contributed about and manual entries.
+- `ProviderRailView`: shared rail tab registration, filtering, and rendering.
 - `ProviderPluginControl`: plugin enablement and control contracts built on `LumiKernel`.
 - `ProviderPluginManaging`: plugin listing, lifecycle management, and change observation.
 - `ProviderStorage`: shared app storage and plugin enabled-state persistence.
 - `ProviderTheme`: shared theme values, built-in palettes, and theme selection state.
+- `ProviderToast`: non-blocking toast presentation contracts.
+- `ProviderToolbar`: shared toolbar item registration, filtering, and rendering.
 
 Each product is an independent Swift module and can be added to a target separately.
 

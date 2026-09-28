@@ -9,14 +9,21 @@ let package = Package(
     ],
     products: [
         .library(name: "ProviderCommand", targets: ["ProviderCommand"]),
+        .library(name: "ProviderContentView", targets: ["ProviderContentView"]),
+        .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
+        .library(name: "ProviderRailView", targets: ["ProviderRailView"]),
         .library(name: "ProviderPluginControl", targets: ["ProviderPluginControl"]),
         .library(name: "ProviderPluginManaging", targets: ["ProviderPluginManaging"]),
         .library(name: "ProviderStorage", targets: ["ProviderStorage"]),
         .library(name: "ProviderTheme", targets: ["ProviderTheme"]),
+        .library(name: "ProviderToast", targets: ["ProviderToast"]),
+        .library(name: "ProviderToolbar", targets: ["ProviderToolbar"]),
     ],
     dependencies: [
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
         .package(url: "https://github.com/CofficLab/LumiLogging.git", from: "1.0.1"),
+        .package(url: "https://github.com/CofficLab/LumiLocalization.git", from: "1.0.0"),
+        .package(url: "https://github.com/CofficLab/LumiUI.git", from: "1.7.0"),
     ],
     targets: [
         .target(
@@ -61,6 +68,41 @@ let package = Package(
             path: "Tests/ProviderPluginManagingTests"
         ),
         .target(
+            name: "ProviderContentView",
+            dependencies: [
+                .product(name: "LumiLocalizationKit", package: "LumiLocalization"),
+                .product(name: "LumiUI", package: "LumiUI"),
+            ],
+            path: "Sources/ProviderContentView",
+            resources: [.process("../../Resources/Localizable.xcstrings")]
+        ),
+        .testTarget(
+            name: "ProviderContentViewTests",
+            dependencies: ["ProviderContentView"],
+            path: "Tests/ProviderContentViewTests"
+        ),
+        .target(
+            name: "ProviderDocsView",
+            path: "Sources/ProviderDocsView"
+        ),
+        .testTarget(
+            name: "ProviderDocsViewTests",
+            dependencies: ["ProviderDocsView"],
+            path: "Tests/ProviderDocsViewTests"
+        ),
+        .target(
+            name: "ProviderRailView",
+            dependencies: [
+                .product(name: "LumiUI", package: "LumiUI"),
+            ],
+            path: "Sources/ProviderRailView"
+        ),
+        .testTarget(
+            name: "ProviderRailViewTests",
+            dependencies: ["ProviderRailView"],
+            path: "Tests/ProviderRailViewTests"
+        ),
+        .target(
             name: "ProviderStorage",
             dependencies: [
                 .product(name: "KernelCore", package: "LumiKernel"),
@@ -77,6 +119,15 @@ let package = Package(
             path: "Tests/ProviderStorageTests"
         ),
         .target(
+            name: "ProviderToast",
+            path: "Sources/ProviderToast"
+        ),
+        .testTarget(
+            name: "ProviderToastTests",
+            dependencies: ["ProviderToast"],
+            path: "Tests/ProviderToastTests"
+        ),
+        .target(
             name: "ProviderTheme",
             path: "Sources/ProviderTheme",
             resources: [.process("../../Resources/Localizable.xcstrings")]
@@ -85,6 +136,18 @@ let package = Package(
             name: "ProviderThemeTests",
             dependencies: ["ProviderTheme"],
             path: "Tests/ProviderThemeTests"
+        ),
+        .target(
+            name: "ProviderToolbar",
+            dependencies: [
+                .product(name: "LumiUI", package: "LumiUI"),
+            ],
+            path: "Sources/ProviderToolbar"
+        ),
+        .testTarget(
+            name: "ProviderToolbarTests",
+            dependencies: ["ProviderToolbar"],
+            path: "Tests/ProviderToolbarTests"
         ),
     ]
 )

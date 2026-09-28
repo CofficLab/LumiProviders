@@ -276,6 +276,10 @@ public extension RootViewProviding {
 
     var toolbarView: AnyView? { view(for: .toolbar) }
     var activityBarView: AnyView? { view(for: .activityBar) }
+    var controlView: AnyView? {
+        get { view(for: .contentHeader) }
+        set { setControlView(newValue) }
+    }
     var sidebarView: AnyView? { view(for: .sidebar) }
     var railView: AnyView? { view(for: .rail) }
     var contentHeaderView: AnyView? { view(for: .contentHeader) }

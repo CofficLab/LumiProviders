@@ -6,6 +6,8 @@ import SwiftUI
 /// 未设置时 `makeContentView()` 返回占位提示。
 @MainActor
 public final class DefaultContentViewProviding: ContentViewProviding {
+    public private(set) var tabs: [ContentTabItem] = []
+    public private(set) var isDemoMode = false
     private struct Entry: Identifiable {
         let id: String
         let order: Int
@@ -17,6 +19,18 @@ public final class DefaultContentViewProviding: ContentViewProviding {
     private var observers: [UUID: (ContentViewEvent) -> Void] = [:]
 
     public init() {}
+
+    public func setDemoMode(_ enabled: Bool) {
+        isDemoMode = enabled
+    }
+
+    public func setTabs(_ tabs: [ContentTabItem]) {
+        self.tabs = tabs.sorted { $0.order < $1.order }
+        removeAllContentView()
+        for tab in self.tabs {
+            addContentView(tab.content, id: tab.id, order: tab.order)
+        }
+    }
 
     @discardableResult
     public func addContentViewObserver(

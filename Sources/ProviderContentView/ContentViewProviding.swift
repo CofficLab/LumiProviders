@@ -38,6 +38,12 @@ public protocol ContentViewObserverHandle: AnyObject {
 
 @MainActor
 public protocol ContentViewProviding: AnyObject {
+    var tabs: [ContentTabItem] { get }
+    var isDemoMode: Bool { get }
+
+    func setTabs(_ tabs: [ContentTabItem])
+    func setDemoMode(_ enabled: Bool)
+
     @discardableResult
     func addContentViewObserver(
         _ callback: @escaping (ContentViewEvent) -> Void
@@ -60,19 +66,15 @@ public protocol ContentViewProviding: AnyObject {
 }
 
 public extension ContentViewProviding {
-    /// Compatibility input retained for older workbench factories.
-    func setDemoMode(_ enabled: Bool) {}
-
-    /// Compatibility adapter for the older multi-tab content contract.
-    /// The shared provider renders the contributions in order as one content
-    /// host, preserving the old injection point without reintroducing a local
-    /// provider implementation in each app.
+    var tabs: [ContentTabItem] { [] }
+    var isDemoMode: Bool { false }
     func setTabs(_ tabs: [ContentTabItem]) {
         removeAllContentView()
         for tab in tabs.sorted(by: { $0.order < $1.order }) {
             addContentView(tab.content, id: tab.id, order: tab.order)
         }
     }
+    func setDemoMode(_ enabled: Bool) {}
 
     func addContentView(_ view: AnyView, id: String, order: Int) {
         setContentView(view)

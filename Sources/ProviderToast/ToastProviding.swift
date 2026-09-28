@@ -38,6 +38,15 @@ public protocol ToastProviding: AnyObject {
     /// **契约**:非阻塞、不抛错。实现可自行决定队列策略(排队、合并或
     /// 替换当前提示)。`toast.duration` 为 `nil` 时使用实现默认时长。
     func show(_ toast: LumiToast)
+
+    /// 展示一条需要用户明确关闭的错误通知。
+    ///
+    /// 实现应保留完整的 `message`，并提供可阅读、可复制的持久化面板；
+    /// 错误不会像普通 Toast 一样自动消失。
+    func presentError(title: String, message: String)
+
+    /// 关闭当前持久化错误通知。
+    func dismissError()
 }
 
 // MARK: - 默认实现

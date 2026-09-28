@@ -14,6 +14,10 @@ struct ProviderToastTests {
         func show(_ toast: LumiToast) {
             received.append(toast)
         }
+
+        func presentError(title: String, message: String) {}
+
+        func dismissError() {}
     }
 
     @Test("LumiToast 可创建且 Equatable")
@@ -61,6 +65,14 @@ struct ProviderToastTests {
         let recording = provider as! RecordingToastProvider
         #expect(recording.received.count == 1)
         #expect(recording.received[0].title == "hello")
+    }
+
+    @Test("ToastProviding 错误通知便捷接口可安全调用")
+    func errorNoticeMethodsAreAvailable() {
+        let provider: any ToastProviding = RecordingToastProvider()
+
+        provider.presentError(title: "错误", message: "详细信息")
+        provider.dismissError()
     }
 
     // MARK: - DefaultToastProviding

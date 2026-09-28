@@ -103,4 +103,29 @@ public extension ToastProviding {
             dismissError()
         }
     }
+
+    /// 便捷状态接口：保持 Lumi/Cisum 业务插件的调用方式一致。
+    func info(_ title: String, detail: String? = nil, duration: TimeInterval = 3) {
+        show(title, detail: detail, style: .info, duration: duration)
+    }
+
+    func success(_ title: String, detail: String? = nil, duration: TimeInterval = 3) {
+        show(title, detail: detail, style: .success, duration: duration)
+    }
+
+    func warning(_ title: String, detail: String? = nil, duration: TimeInterval = 4) {
+        show(title, detail: detail, style: .warning, duration: duration)
+    }
+
+    func error(_ title: String, detail: String? = nil, duration: TimeInterval? = nil) {
+        if let duration {
+            show(title, detail: detail, style: .error, duration: duration)
+        } else {
+            presentError(title: title, message: detail ?? title)
+        }
+    }
+
+    func error(_ error: Error, title: String = "Error", duration: TimeInterval? = nil) {
+        self.error(title, detail: error.localizedDescription, duration: duration)
+    }
 }

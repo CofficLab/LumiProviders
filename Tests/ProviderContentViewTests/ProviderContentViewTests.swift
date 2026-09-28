@@ -80,4 +80,11 @@ struct ProviderContentViewTests {
 
         #expect(type(of: provider.makeContentView()) == AnyView.self)
     }
+
+    @Test("ContentLoadingIndicator 可创建")
+    func loadingIndicatorCanBeCreated() {
+        let view = ContentLoadingIndicator("Loading", controlSize: .small)
+
+        #expect(type(of: view) == ContentLoadingIndicator.self)
+    }
 }

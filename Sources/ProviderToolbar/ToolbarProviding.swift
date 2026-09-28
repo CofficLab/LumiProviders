@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 /// 工具栏视图提供能力协议
@@ -77,6 +78,55 @@ public extension ToolbarProviding {
         _ callback: @escaping (ToolbarEvent) -> Void
     ) -> any ToolbarObserverHandle {
         NoopToolbarObserverHandle()
+    }
+}
+
+/// iOS 顶部导航栏提供能力协议。
+@MainActor
+public protocol IOSNavigationBarProviding: AnyObject, ObservableObject
+    where ObjectWillChangePublisher == ObservableObjectPublisher {
+    var navigationBarItems: [IOSNavigationBarItem] { get }
+    var visibleCategories: Set<ToolbarItemCategory> { get }
+    var visibleNavigationBarItems: [IOSNavigationBarItem] { get }
+
+    func registerNavigationBarItems(_ items: [IOSNavigationBarItem])
+    func addNavigationBarItems(_ items: [IOSNavigationBarItem])
+    func removeNavigationBarItems(ids: Set<String>)
+    func setVisibleCategories(_ categories: Set<ToolbarItemCategory>)
+    func setHiddenCategories(_ categories: Set<ToolbarItemCategory>, for source: String)
+}
+
+public extension IOSNavigationBarProviding {
+    var visibleCategories: Set<ToolbarItemCategory> {
+        Set(ToolbarItemCategory.allCases)
+    }
+
+    var visibleNavigationBarItems: [IOSNavigationBarItem] {
+        navigationBarItems.filter { visibleCategories.contains($0.category) }
+    }
+
+    func setVisibleCategories(_ categories: Set<ToolbarItemCategory>) {}
+    func setHiddenCategories(_ categories: Set<ToolbarItemCategory>, for source: String) {}
+
+    func addNavigationBarItems(_ newItems: [IOSNavigationBarItem]) {
+        var merged = navigationBarItems
+        for item in newItems where !merged.contains(where: { $0.id == item.id }) {
+            merged.append(item)
+        }
+        registerNavigationBarItems(
+            merged.enumerated()
+                .sorted { lhs, rhs in
+                    if lhs.element.order != rhs.element.order {
+                        return lhs.element.order < rhs.element.order
+                    }
+                    return lhs.offset < rhs.offset
+                }
+                .map(\.element)
+        )
+    }
+
+    func removeNavigationBarItems(ids: Set<String>) {
+        registerNavigationBarItems(navigationBarItems.filter { !ids.contains($0.id) })
     }
 }
 

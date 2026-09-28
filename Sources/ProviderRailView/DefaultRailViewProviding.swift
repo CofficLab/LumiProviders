@@ -1,3 +1,4 @@
+import Combine
 import LumiUI
 import SwiftUI
 
@@ -12,12 +13,23 @@ public final class DefaultRailViewProviding: RailViewProviding {
     public private(set) var visibleTabID: String?
     public private(set) var activeTabID: String?
     public private(set) var hasVisibleTabs = false
+    public private(set) var sections: [RailSectionItem] = []
     public private(set) var railWidth: RailViewWidth
+
+    public var hasVisibleSections: Bool { !sections.isEmpty }
+    public var railVisibilityPublisher: AnyPublisher<Bool, Never> {
+        railVisibilitySubject.eraseToAnyPublisher()
+    }
+    public var railWidthPublisher: AnyPublisher<RailViewWidth, Never> {
+        railWidthSubject.eraseToAnyPublisher()
+    }
 
     private let defaultWidthStore: (any RailViewWidthStoring)?
     private var activeWidthStore: (any RailViewWidthStoring)?
     private var activeWidthOwnerID: String?
     private var pendingActiveTabID: String?
+    private let railVisibilitySubject = CurrentValueSubject<Bool, Never>(false)
+    private let railWidthSubject = CurrentValueSubject<RailViewWidth, Never>(.standard)
 
     private var observers: [WeakObserver] = []
 
@@ -52,6 +64,24 @@ public final class DefaultRailViewProviding: RailViewProviding {
         if hasVisibleTabs != oldHasVisibleTabs {
             notify(.visibilityChanged(hasVisibleTabs))
         }
+        publishRailVisibility()
+    }
+
+    public func registerSections(_ newSections: [RailSectionItem]) {
+        sections = newSections.sorted { $0.order < $1.order }
+        publishRailVisibility()
+    }
+
+    public func addSections(_ newSections: [RailSectionItem]) {
+        var merged = sections
+        for section in newSections where !merged.contains(where: { $0.id == section.id }) {
+            merged.append(section)
+        }
+        registerSections(merged)
+    }
+
+    public func removeSections(ids: Set<String>) {
+        registerSections(sections.filter { !ids.contains($0.id) })
     }
 
     public func activateTab(id: String?) {
@@ -146,6 +176,7 @@ public final class DefaultRailViewProviding: RailViewProviding {
         let resolvedWidth = recommended.withIdealWidth(recommended.clamped(restoredWidth))
         if railWidth != resolvedWidth {
             railWidth = resolvedWidth
+            railWidthSubject.send(railWidth)
             notify(.widthChanged(railWidth))
         }
     }
@@ -156,6 +187,7 @@ public final class DefaultRailViewProviding: RailViewProviding {
         activeWidthStore = nil
         if railWidth != .standard {
             railWidth = .standard
+            railWidthSubject.send(railWidth)
             notify(.widthChanged(railWidth))
         }
     }
@@ -167,6 +199,7 @@ public final class DefaultRailViewProviding: RailViewProviding {
         let updatedWidth = railWidth.withIdealWidth(resolvedWidth)
         if railWidth != updatedWidth {
             railWidth = updatedWidth
+            railWidthSubject.send(railWidth)
             notify(.widthChanged(railWidth))
         }
     }
@@ -205,6 +238,10 @@ public final class DefaultRailViewProviding: RailViewProviding {
 
     private func updateVisibleTabState() {
         hasVisibleTabs = !visibleTabs.isEmpty
+    }
+
+    private func publishRailVisibility() {
+        railVisibilitySubject.send(hasVisibleTabs || hasVisibleSections)
     }
 
     private func reconcileActiveTab() {
@@ -301,7 +338,16 @@ private struct RailView: View {
     private var content: some View {
         let visibleTabs = provider.visibleTabs
 
-        if visibleTabs.isEmpty {
+        if !provider.sections.isEmpty {
+            VStack(spacing: 0) {
+                ForEach(provider.sections) { section in
+                    section.makeView()
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
+            .background(theme.surface)
+        } else if visibleTabs.isEmpty {
             EmptyView()
         } else {
             VStack(spacing: 0) {

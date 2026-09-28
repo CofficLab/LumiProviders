@@ -12,6 +12,13 @@ public enum ToolbarPlacement: Sendable {
     case trailing
 }
 
+/// iOS 顶部导航栏的位置。
+public enum IOSNavigationBarPlacement: Equatable, Sendable {
+    case leading
+    case principal
+    case trailing
+}
+
 /// 工具栏项的业务分类。
 ///
 /// 分类描述工具栏项属于哪个工作区上下文，而不是贡献它的插件类型。
@@ -71,6 +78,33 @@ public struct ToolbarItem: Identifiable {
         self.placement = placement
         self.category = category
         self.ownerPluginID = ownerPluginID
+        self.order = order
+        self.makeView = { AnyView(content()) }
+    }
+}
+
+/// iOS 顶部导航栏贡献项。
+@MainActor
+public struct IOSNavigationBarItem: Identifiable {
+    public let id: String
+    public let title: String
+    public let placement: IOSNavigationBarPlacement
+    public let category: ToolbarItemCategory
+    public var order: Int
+    public let makeView: @MainActor () -> AnyView
+
+    public init<Content: View>(
+        id: String,
+        title: String,
+        placement: IOSNavigationBarPlacement = .trailing,
+        category: ToolbarItemCategory = .global,
+        order: Int = 200,
+        @ViewBuilder content: @escaping @MainActor () -> Content
+    ) {
+        self.id = id
+        self.title = title
+        self.placement = placement
+        self.category = category
         self.order = order
         self.makeView = { AnyView(content()) }
     }

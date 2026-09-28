@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import SwiftUI
 
 // MARK: - Observation
@@ -169,6 +170,27 @@ public protocol RailViewProviding: AnyObject {
     /// 不要求上层了解具体的 tab 分类或过滤规则。
     var hasVisibleTabs: Bool { get }
 
+    /// 兼容旧版的 Rail 纵向区块视图。
+    var sections: [RailSectionItem] { get }
+
+    /// 当前是否存在 Rail 区块。
+    var hasVisibleSections: Bool { get }
+
+    /// Rail 可见性变化发布器（tab 或区块任一可见时为 true）。
+    var railVisibilityPublisher: AnyPublisher<Bool, Never> { get }
+
+    /// Rail 宽度变化发布器。
+    var railWidthPublisher: AnyPublisher<RailViewWidth, Never> { get }
+
+    /// 替换全部 Rail 区块。
+    func registerSections(_ sections: [RailSectionItem])
+
+    /// 追加 Rail 区块。
+    func addSections(_ sections: [RailSectionItem])
+
+    /// 按 id 撤回 Rail 区块。
+    func removeSections(ids: Set<String>)
+
     /// 当前 Rail 宽度（可能是插件推荐值，也可能是用户保存值）。
     var railWidth: RailViewWidth { get }
 
@@ -230,6 +252,24 @@ public extension RailViewProviding {
     var activeTabID: String? { nil }
 
     var hasVisibleTabs: Bool { !tabs.isEmpty }
+
+    var sections: [RailSectionItem] { [] }
+
+    var hasVisibleSections: Bool { !sections.isEmpty }
+
+    var railVisibilityPublisher: AnyPublisher<Bool, Never> {
+        Just(hasVisibleTabs || hasVisibleSections).eraseToAnyPublisher()
+    }
+
+    var railWidthPublisher: AnyPublisher<RailViewWidth, Never> {
+        Just(railWidth).eraseToAnyPublisher()
+    }
+
+    func registerSections(_ sections: [RailSectionItem]) {}
+
+    func addSections(_ sections: [RailSectionItem]) {}
+
+    func removeSections(ids: Set<String>) {}
 
     var railWidth: RailViewWidth { .standard }
 

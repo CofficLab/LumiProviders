@@ -1,3 +1,4 @@
+import Combine
 import LumiUI
 import SwiftUI
 
@@ -89,6 +90,47 @@ public final class DefaultToolbarProviding: ToolbarProviding {
 
     public func makeToolbarView() -> AnyView {
         AnyView(ToolbarView(provider: self))
+    }
+}
+
+/// iOS 顶部导航栏的默认实现。
+@MainActor
+public final class DefaultIOSNavigationBarProviding: IOSNavigationBarProviding, ObservableObject {
+    @Published public private(set) var navigationBarItems: [IOSNavigationBarItem] = []
+    @Published public private(set) var visibleCategories: Set<ToolbarItemCategory>
+
+    private var baseVisibleCategories: Set<ToolbarItemCategory>
+    private var hiddenCategoriesBySource: [String: Set<ToolbarItemCategory>] = [:]
+
+    public init(visibleCategories: Set<ToolbarItemCategory> = Set(ToolbarItemCategory.allCases)) {
+        self.visibleCategories = visibleCategories
+        self.baseVisibleCategories = visibleCategories
+    }
+
+    public func registerNavigationBarItems(_ items: [IOSNavigationBarItem]) {
+        navigationBarItems = items
+    }
+
+    public func setVisibleCategories(_ categories: Set<ToolbarItemCategory>) {
+        guard baseVisibleCategories != categories else { return }
+        baseVisibleCategories = categories
+        refreshVisibleCategories()
+    }
+
+    public func setHiddenCategories(_ categories: Set<ToolbarItemCategory>, for source: String) {
+        if categories.isEmpty {
+            hiddenCategoriesBySource.removeValue(forKey: source)
+        } else {
+            hiddenCategoriesBySource[source] = categories
+        }
+        refreshVisibleCategories()
+    }
+
+    private func refreshVisibleCategories() {
+        let hiddenCategories = hiddenCategoriesBySource.values.reduce(into: Set<ToolbarItemCategory>()) {
+            $0.formUnion($1)
+        }
+        visibleCategories = baseVisibleCategories.subtracting(hiddenCategories)
     }
 }
 

@@ -14,6 +14,7 @@ let package = Package(
         .library(name: "ProviderRailView", targets: ["ProviderRailView"]),
         .library(name: "ProviderPluginControl", targets: ["ProviderPluginControl"]),
         .library(name: "ProviderPluginManaging", targets: ["ProviderPluginManaging"]),
+        .library(name: "ProviderRootView", targets: ["ProviderRootView"]),
         .library(name: "ProviderStorage", targets: ["ProviderStorage"]),
         .library(name: "ProviderTheme", targets: ["ProviderTheme"]),
         .library(name: "ProviderToast", targets: ["ProviderToast"]),
@@ -66,6 +67,16 @@ let package = Package(
                 .product(name: "KernelCore", package: "LumiKernel"),
             ],
             path: "Tests/ProviderPluginManagingTests"
+        ),
+        .target(
+            name: "ProviderRootView",
+            dependencies: ["ProviderRailView"],
+            path: "Sources/ProviderRootView"
+        ),
+        .testTarget(
+            name: "ProviderRootViewTests",
+            dependencies: ["ProviderRootView"],
+            path: "Tests/ProviderRootViewTests"
         ),
         .target(
             name: "ProviderContentView",

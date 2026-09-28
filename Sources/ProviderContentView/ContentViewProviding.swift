@@ -60,6 +60,9 @@ public protocol ContentViewProviding: AnyObject {
 }
 
 public extension ContentViewProviding {
+    /// Compatibility input retained for older workbench factories.
+    func setDemoMode(_ enabled: Bool) {}
+
     /// Compatibility adapter for the older multi-tab content contract.
     /// The shared provider renders the contributions in order as one content
     /// host, preserving the old injection point without reintroducing a local

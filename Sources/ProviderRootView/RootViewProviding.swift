@@ -228,6 +228,11 @@ public extension RootViewProviding {
     func setActivityBarView(_ view: AnyView?) { setView(view, for: .activityBar) }
     func setRailView(_ view: AnyView?) { setView(view, for: .rail) }
 
+    /// Compatibility slots used by the older desktop workbench contract.
+    func setControlView(_ view: AnyView?) { setContentHeaderView(view) }
+    func setStatusView(_ view: AnyView?) { setView(view, for: .statusBar) }
+    func setToolbarContent(_ view: AnyView?) { setToolbarView(view) }
+
     var isRailViewVisible: Bool { true }
     func setRailViewVisible(_ visible: Bool) {}
     func bindRailViewVisibility(to provider: any RailViewProviding) {}

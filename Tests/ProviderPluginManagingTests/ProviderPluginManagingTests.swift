@@ -43,6 +43,24 @@ struct ProviderPluginManagingTests {
         #expect(manager.enabledCount == 2)
     }
 
+    @Test("attach 把内核同步给 controlling，isEnabled 反映真实状态")
+    func attachForwardsKernelToControlling() throws {
+        let kernel = KernelCoreContainer()
+        let plugin = TestPlugin(id: "attached", policy: .required)
+        try kernel.start(plugins: [plugin])
+
+        // 无参构造（controlling 拿到 nil kernel）→ attach 后必须恢复。
+        let manager = DefaultPluginManaging()
+        manager.attach(kernel: kernel)
+
+        #expect(manager.isRegistered(id: plugin.id))
+        #expect(
+            manager.isEnabled(id: plugin.id),
+            Comment(rawValue: "attach 必须同步转发给 controlling；否则 isEnabled 恒为 false，"
+                + "消费方（如共享 PluginToolbar 状态同步）会把全部插件贡献误判为已禁用")
+        )
+    }
+
     @Test("启停控制委托给 PluginControlling")
     func delegatesEnableDisable() async throws {
         let kernel = KernelCoreContainer()

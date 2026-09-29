@@ -23,8 +23,15 @@ public final class DefaultPluginManager: PluginManaging {
         self.controlling = controlling ?? DefaultPluginControlling(kernel: kernel)
     }
 
+    /// 附加内核。
+    ///
+    /// 同时转发给内部的 `DefaultPluginControlling`：manager 的 kernel 只服务
+    /// 枚举 / 查询，而 `isEnabled` / 启停委托给 controlling。若 controlling
+    /// 仍是 init 时用 nil 构造的实例，`isEnabled` 会对所有插件返回 false，
+    /// 导致消费方（如共享 PluginToolbar 状态同步）把全部插件贡献误判为已禁用。
     public func attach(kernel: KernelCoreContainer) {
         self.kernel = kernel
+        (controlling as? DefaultPluginControlling)?.attach(kernel: kernel)
     }
 
     // MARK: - PluginControlling（委托）

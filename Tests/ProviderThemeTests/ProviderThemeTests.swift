@@ -61,7 +61,9 @@ struct ProviderThemeTests {
         try provider.selectTheme(id: "lumi-dark")
 
         #expect(provider.selectedThemeId == "lumi-dark")
-        #expect(provider.selectedTheme?.displayName == "Dark")
+        // displayName 是运行时本地化的（中文系统解析为「暗色」），
+        // 因此用稳定的 id 断言选中状态。
+        #expect(provider.selectedTheme?.id == "lumi-dark")
         #expect(provider.followsSystemAppearance == false)
     }
 

@@ -11,6 +11,8 @@ let package = Package(
         .library(name: "ProviderCommand", targets: ["ProviderCommand"]),
         .library(name: "ProviderContentView", targets: ["ProviderContentView"]),
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
+        .library(name: "ProviderNetwork", targets: ["ProviderNetwork"]),
+        .library(name: "ProviderProject", targets: ["ProviderProject"]),
         .library(name: "ProviderRailView", targets: ["ProviderRailView"]),
         .library(name: "ProviderStatusBar", targets: ["ProviderStatusBar"]),
         .library(name: "ProviderPluginControl", targets: ["ProviderPluginControl"]),
@@ -102,6 +104,27 @@ let package = Package(
             name: "ProviderDocsViewTests",
             dependencies: ["ProviderDocsView"],
             path: "Tests/ProviderDocsViewTests"
+        ),
+        .target(
+            name: "ProviderNetwork",
+            path: "Sources/ProviderNetwork"
+        ),
+        .testTarget(
+            name: "ProviderNetworkTests",
+            dependencies: ["ProviderNetwork"],
+            path: "Tests/ProviderNetworkTests"
+        ),
+        .target(
+            name: "ProviderProject",
+            dependencies: [
+                .product(name: "LumiLoggingKit", package: "LumiLogging"),
+            ],
+            path: "Sources/ProviderProject"
+        ),
+        .testTarget(
+            name: "ProviderProjectTests",
+            dependencies: ["ProviderProject"],
+            path: "Tests/ProviderProjectTests"
         ),
         .target(
             name: "ProviderRailView",

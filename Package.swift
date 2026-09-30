@@ -158,7 +158,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ProviderToolbarTests",
-            dependencies: ["ProviderToolbar"],
+            dependencies: ["ProviderToolbar", "PluginToolbar"],
             path: "Tests/ProviderToolbarTests"
         ),
         .target(

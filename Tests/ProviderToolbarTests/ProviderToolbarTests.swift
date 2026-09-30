@@ -1,11 +1,21 @@
 import SwiftUI
 import Testing
+@testable import PluginToolbar
 @testable import ProviderToolbar
 
 /// ToolbarProviding 协议、ToolbarItem 模型与默认实现的基础验证。
 @Suite("ProviderToolbar")
 @MainActor
 struct ProviderToolbarTests {
+
+    @Test("宿主可注入自定义插件 id")
+    func customPluginIDIsApplied() {
+        let plugin = PluginToolbar(id: "com.example.custom.plugin.toolbar")
+
+        #expect(plugin.id == "com.example.custom.plugin.toolbar")
+        #expect(plugin.metadata.id == plugin.id)
+        #expect(PluginToolbar.defaultPluginID == "com.coffic.shared.plugin.toolbar")
+    }
 
     @Test("ToolbarItem 可创建且携带位置信息")
     func toolbarItemBasics() {

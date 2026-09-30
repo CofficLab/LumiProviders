@@ -15,20 +15,29 @@ public final class PluginToolbar: SuperPlugin, SuperLog {
     public nonisolated static let emoji = "🧰"
     nonisolated static let verbose = false
 
-    public let id = "com.coffic.shared.plugin.toolbar"
+    /// 默认插件标识。宿主可在装配时传入自己的 id。
+    public static let defaultPluginID = "com.coffic.shared.plugin.toolbar"
+
+    public let id: String
     public let order = 0
-    public let metadata = PluginMetadata(
-        id: "com.coffic.shared.plugin.toolbar",
-        name: "Toolbar",
-        description: "Manages shared macOS and iOS toolbar contributions.",
-        category: .core,
-        stage: .stable,
-        policy: .alwaysOn
-    )
+    public let metadata: PluginMetadata
 
     private var stateObserver: PluginToolbarStateObserver?
 
-    public init() {}
+    /// 创建共享工具栏插件。
+    ///
+    /// - Parameter id: 插件唯一标识，决定 `PluginMetadata.id`。
+    public init(id: String = PluginToolbar.defaultPluginID) {
+        self.id = id
+        self.metadata = PluginMetadata(
+            id: id,
+            name: "Toolbar",
+            description: "Manages shared macOS and iOS toolbar contributions.",
+            category: .core,
+            stage: .stable,
+            policy: .alwaysOn
+        )
+    }
 
     public func onBoot(kernel: KernelCoreContainer) throws {}
 

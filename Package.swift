@@ -12,6 +12,7 @@ let package = Package(
         .library(name: "ProviderContentView", targets: ["ProviderContentView"]),
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
         .library(name: "ProviderRailView", targets: ["ProviderRailView"]),
+        .library(name: "ProviderStatusBar", targets: ["ProviderStatusBar"]),
         .library(name: "ProviderPluginControl", targets: ["ProviderPluginControl"]),
         .library(name: "ProviderPluginManaging", targets: ["ProviderPluginManaging"]),
         .library(name: "ProviderRootView", targets: ["ProviderRootView"]),
@@ -113,6 +114,18 @@ let package = Package(
             name: "ProviderRailViewTests",
             dependencies: ["ProviderRailView"],
             path: "Tests/ProviderRailViewTests"
+        ),
+        .target(
+            name: "ProviderStatusBar",
+            dependencies: [
+                .product(name: "LumiUI", package: "LumiUI"),
+            ],
+            path: "Sources/ProviderStatusBar"
+        ),
+        .testTarget(
+            name: "ProviderStatusBarTests",
+            dependencies: ["ProviderStatusBar"],
+            path: "Tests/ProviderStatusBarTests"
         ),
         .target(
             name: "ProviderStorage",

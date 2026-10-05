@@ -23,6 +23,7 @@ let package = Package(
         .library(name: "ProviderToast", targets: ["ProviderToast"]),
         .library(name: "ProviderToolbar", targets: ["ProviderToolbar"]),
         .library(name: "PluginToolbar", targets: ["PluginToolbar"]),
+        .library(name: "ProviderLogo", targets: ["ProviderLogo"]),
     ],
     dependencies: [
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
@@ -206,6 +207,15 @@ let package = Package(
                 "ProviderToolbar",
             ],
             path: "Sources/PluginToolbar"
+        ),
+        .target(
+            name: "ProviderLogo",
+            path: "Sources/ProviderLogo"
+        ),
+        .testTarget(
+            name: "ProviderLogoTests",
+            dependencies: ["ProviderLogo"],
+            path: "Tests/ProviderLogoTests"
         ),
     ]
 )

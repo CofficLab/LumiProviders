@@ -39,11 +39,14 @@ public protocol ToastProviding: AnyObject {
     /// 替换当前提示)。`toast.duration` 为 `nil` 时使用实现默认时长。
     func show(_ toast: LumiToast)
 
-    /// 展示一条需要用户明确关闭的错误通知。
+    /// 展示一条带来源窗口标识、需要用户明确关闭的错误通知。
     ///
     /// 实现应保留完整的 `message`，并提供可阅读、可复制的持久化面板；
     /// 错误不会像普通 Toast 一样自动消失。
-    func presentError(title: String, message: String)
+    ///
+    /// `sourceWindowID` 非空时，面板只在对应窗口渲染；为 `nil` 时由呈现层
+    /// 在当前活动窗口兜底显示，避免同一错误在多个窗口重复弹出。
+    func presentError(title: String, message: String, sourceWindowID: String?)
 
     /// 关闭当前持久化错误通知。
     func dismissError()
@@ -65,6 +68,12 @@ public protocol ToastLoadingProviding: ToastProviding {
 
 public extension ToastProviding {
     var currentToast: LumiToast? { nil }
+
+    /// 不指定来源窗口的便捷入口；等价于 `sourceWindowID == nil`，
+    /// 由呈现层在当前活动窗口兜底显示。
+    func presentError(title: String, message: String) {
+        presentError(title: title, message: message, sourceWindowID: nil)
+    }
 
     @discardableResult
     func addObserver(

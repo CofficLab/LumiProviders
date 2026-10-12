@@ -15,15 +15,15 @@ struct ToastProvidingConvenienceTests {
     /// 记录所有调用的测试替身。
     private final class RecordingProvider: ToastProviding {
         var shown: [LumiToast] = []
-        var errors: [(title: String, message: String)] = []
+        var errors: [(title: String, message: String, sourceWindowID: String?)] = []
         var dismissErrorCount = 0
 
         func show(_ toast: LumiToast) {
             shown.append(toast)
         }
 
-        func presentError(title: String, message: String) {
-            errors.append((title, message))
+        func presentError(title: String, message: String, sourceWindowID: String?) {
+            errors.append((title, message, sourceWindowID))
         }
 
         func dismissError() {

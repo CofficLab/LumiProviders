@@ -15,7 +15,7 @@ public final class DefaultToastProviding: ToastLoadingProviding {
         // no-op：骨架阶段不渲染，静默丢弃。
     }
 
-    public func presentError(title: String, message: String) {
+    public func presentError(title: String, message: String, sourceWindowID: String?) {
         // no-op：骨架阶段不渲染，静默丢弃。
     }
 

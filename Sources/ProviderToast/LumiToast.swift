@@ -39,11 +39,19 @@ public struct LumiErrorNotice: Identifiable, Sendable, Equatable {
     public let id: UUID
     public let title: String
     public let message: String
+    /// 错误来源窗口标识；`nil` 表示不指定窗口，由呈现层在当前活动窗口兜底显示。
+    public let sourceWindowID: String?
 
-    public init(id: UUID = UUID(), title: String, message: String) {
+    public init(
+        id: UUID = UUID(),
+        title: String,
+        message: String,
+        sourceWindowID: String? = nil
+    ) {
         self.id = id
         self.title = title
         self.message = message
+        self.sourceWindowID = sourceWindowID
     }
 }
 

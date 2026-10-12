@@ -16,7 +16,7 @@ struct ProviderToastTests {
             received.append(toast)
         }
 
-        func presentError(title: String, message: String) {}
+        func presentError(title: String, message: String, sourceWindowID: String?) {}
 
         func dismissError() {}
         func showLoading(title: String, detail: String?) {

@@ -8,6 +8,7 @@ let package = Package(
         .iOS(.v17)
     ],
     products: [
+        .library(name: "ProviderActivityBar", targets: ["ProviderActivityBar"]),
         .library(name: "ProviderCommand", targets: ["ProviderCommand"]),
         .library(name: "ProviderContentView", targets: ["ProviderContentView"]),
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
@@ -216,6 +217,18 @@ let package = Package(
             name: "ProviderLogoTests",
             dependencies: ["ProviderLogo"],
             path: "Tests/ProviderLogoTests"
+        ),
+        .target(
+            name: "ProviderActivityBar",
+            dependencies: [
+                .product(name: "LumiUI", package: "LumiUI"),
+            ],
+            path: "Sources/ProviderActivityBar"
+        ),
+        .testTarget(
+            name: "ProviderActivityBarTests",
+            dependencies: ["ProviderActivityBar"],
+            path: "Tests/ProviderActivityBarTests"
         ),
     ]
 )

@@ -10,6 +10,11 @@ let package = Package(
     products: [
         .library(name: "ProviderActivityBar", targets: ["ProviderActivityBar"]),
         .library(name: "ProviderAppUpdate", targets: ["ProviderAppUpdate"]),
+        .library(name: "ProviderAgentRules", targets: ["ProviderAgentRules"]),
+        .library(name: "ProviderSkill", targets: ["ProviderSkill"]),
+        .library(name: "ProviderConversationInput", targets: ["ProviderConversationInput"]),
+        .library(name: "ProviderDeveloperMode", targets: ["ProviderDeveloperMode"]),
+        .library(name: "ProviderOnboarding", targets: ["ProviderOnboarding"]),
         .library(name: "ProviderCommand", targets: ["ProviderCommand"]),
         .library(name: "ProviderContentView", targets: ["ProviderContentView"]),
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
@@ -239,6 +244,57 @@ let package = Package(
             name: "ProviderAppUpdateTests",
             dependencies: ["ProviderAppUpdate"],
             path: "Tests/ProviderAppUpdateTests"
+        ),
+        .target(
+            name: "ProviderAgentRules",
+            path: "Sources/ProviderAgentRules"
+        ),
+        .testTarget(
+            name: "ProviderAgentRulesTests",
+            dependencies: ["ProviderAgentRules"],
+            path: "Tests/ProviderAgentRulesTests"
+        ),
+        .target(
+            name: "ProviderSkill",
+            dependencies: [
+                .product(name: "LumiLoggingKit", package: "LumiLogging"),
+            ],
+            path: "Sources/ProviderSkill"
+        ),
+        .testTarget(
+            name: "ProviderSkillTests",
+            dependencies: ["ProviderSkill"],
+            path: "Tests/ProviderSkillTests"
+        ),
+        .target(
+            name: "ProviderConversationInput",
+            dependencies: [
+                .product(name: "LumiLoggingKit", package: "LumiLogging"),
+            ],
+            path: "Sources/ProviderConversationInput"
+        ),
+        .testTarget(
+            name: "ProviderConversationInputTests",
+            dependencies: ["ProviderConversationInput"],
+            path: "Tests/ProviderConversationInputTests"
+        ),
+        .target(
+            name: "ProviderDeveloperMode",
+            path: "Sources/ProviderDeveloperMode"
+        ),
+        .testTarget(
+            name: "ProviderDeveloperModeTests",
+            dependencies: ["ProviderDeveloperMode"],
+            path: "Tests/ProviderDeveloperModeTests"
+        ),
+        .target(
+            name: "ProviderOnboarding",
+            path: "Sources/ProviderOnboarding"
+        ),
+        .testTarget(
+            name: "ProviderOnboardingTests",
+            dependencies: ["ProviderOnboarding"],
+            path: "Tests/ProviderOnboardingTests"
         ),
     ]
 )

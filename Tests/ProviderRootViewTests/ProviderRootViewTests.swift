@@ -64,4 +64,27 @@ struct ProviderRootViewTests {
 
         #expect(type(of: provider.makeRootView()) == AnyView.self)
     }
+
+    @Test("Clearing an already absent Rail view does not re-emit railViewChanged")
+    func railViewChangeIsIdempotent() {
+        let provider = DefaultRootViewProviding()
+        var railViewChangedCount = 0
+        let handle = provider.addRootViewObserver { event in
+            if case .railViewChanged = event { railViewChangedCount += 1 }
+        }
+
+        provider.setRailView(AnyView(Text("rail")))
+        #expect(railViewChangedCount == 1)
+
+        provider.setRailView(nil)
+        #expect(railViewChangedCount == 2)
+
+        // A workspace plugin (such as Browser) reacts to the removal by asking
+        // for the Rail to be removed again. Re-emitting here recurses forever
+        // and overflows the stack, so an unchanged removal must stay silent.
+        provider.setRailView(nil)
+        #expect(railViewChangedCount == 2)
+
+        handle.cancel()
+    }
 }

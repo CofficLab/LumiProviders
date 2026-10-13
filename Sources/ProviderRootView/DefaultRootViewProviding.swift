@@ -68,6 +68,16 @@ open class DefaultRootViewProviding: RootViewProviding {
     }
 
     open func setRailView(_ view: AnyView?) {
+        // Guard the removal case: re-emitting `.railViewChanged` after the Rail
+        // is already absent makes workspace plugins that react to that event by
+        // requesting removal again recurse until the stack overflows.
+        //
+        // `AnyView` is not `Equatable` and SwiftUI exposes no stable way to
+        // compare two of them, so an injected view is always treated as new and
+        // only the already-empty state is deduplicated. That is safe because
+        // `makeRailView()`-style factories return a fresh `AnyView` per call;
+        // callers needing a forced replacement can still pass `nil` first.
+        guard (views[.rail] == nil) != (view == nil) else { return }
         store(view, for: .rail)
         emitRootViewEvent(.railViewChanged)
     }

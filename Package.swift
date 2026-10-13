@@ -9,6 +9,7 @@ let package = Package(
     ],
     products: [
         .library(name: "ProviderActivityBar", targets: ["ProviderActivityBar"]),
+        .library(name: "ProviderAppUpdate", targets: ["ProviderAppUpdate"]),
         .library(name: "ProviderCommand", targets: ["ProviderCommand"]),
         .library(name: "ProviderContentView", targets: ["ProviderContentView"]),
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
@@ -229,6 +230,15 @@ let package = Package(
             name: "ProviderActivityBarTests",
             dependencies: ["ProviderActivityBar"],
             path: "Tests/ProviderActivityBarTests"
+        ),
+        .target(
+            name: "ProviderAppUpdate",
+            path: "Sources/ProviderAppUpdate"
+        ),
+        .testTarget(
+            name: "ProviderAppUpdateTests",
+            dependencies: ["ProviderAppUpdate"],
+            path: "Tests/ProviderAppUpdateTests"
         ),
     ]
 )

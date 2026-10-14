@@ -20,6 +20,7 @@ let package = Package(
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
         .library(name: "ProviderNetwork", targets: ["ProviderNetwork"]),
         .library(name: "ProviderProject", targets: ["ProviderProject"]),
+        .library(name: "ProviderIdleTime", targets: ["ProviderIdleTime"]),
         .library(name: "ProviderRailView", targets: ["ProviderRailView"]),
         .library(name: "ProviderStatusBar", targets: ["ProviderStatusBar"]),
         .library(name: "ProviderPluginControl", targets: ["ProviderPluginControl"]),
@@ -133,6 +134,15 @@ let package = Package(
             name: "ProviderProjectTests",
             dependencies: ["ProviderProject"],
             path: "Tests/ProviderProjectTests"
+        ),
+        .target(
+            name: "ProviderIdleTime",
+            path: "Sources/ProviderIdleTime"
+        ),
+        .testTarget(
+            name: "ProviderIdleTimeTests",
+            dependencies: ["ProviderIdleTime"],
+            path: "Tests/ProviderIdleTimeTests"
         ),
         .target(
             name: "ProviderRailView",

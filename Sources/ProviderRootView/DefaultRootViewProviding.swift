@@ -20,7 +20,7 @@ open class DefaultRootViewProviding: RootViewProviding {
     @Published public var isContentFooterViewHidden = false
     @Published public var contentFooterHeight: ContentFooterHeight = .standard
 
-    private var observers: [UUID: (RootViewEvent) -> Void] = [:]
+    private var observers: [WeakObserver] = []
     private var railVisibilityObserver: (any RailViewProvidingObserverHandle)?
     private var railWidthObserver: (any RailViewProvidingObserverHandle)?
     private var railWidthResizeHandler: (@MainActor (CGFloat) -> Void)?
@@ -213,11 +213,9 @@ open class DefaultRootViewProviding: RootViewProviding {
     open func addRootViewObserver(
         _ callback: @escaping (RootViewEvent) -> Void
     ) -> any RootViewObserverHandle {
-        let id = UUID()
-        observers[id] = callback
-        return ObserverHandle { [weak self] in
-            self?.observers.removeValue(forKey: id)
-        }
+        let observer = Observer(owner: self, callback: callback)
+        observers.append(WeakObserver(observer))
+        return observer
     }
 
     open func makeRootView() -> AnyView {
@@ -229,9 +227,15 @@ open class DefaultRootViewProviding: RootViewProviding {
     }
 
     /// Publishes an event for an app-specific subclass.
+    ///
+    /// Prunes released observers first so a dropped handle stops receiving
+    /// events immediately, matching `RailViewProviding` / `CommandProviding`.
+    /// Without the prune, a callback that captured an object would keep that
+    /// object alive for the provider's whole lifetime.
     open func emitRootViewEvent(_ event: RootViewEvent) {
-        for callback in observers.values {
-            callback(event)
+        observers.removeAll { $0.observer == nil }
+        for entry in observers {
+            entry.observer?.invoke(event)
         }
     }
 
@@ -278,18 +282,42 @@ open class DefaultRootViewProviding: RootViewProviding {
         }
     }
 
-    private final class ObserverHandle: RootViewObserverHandle {
-        private let onCancel: () -> Void
+    private func remove(_ observer: Observer) {
+        observers.removeAll { $0.observer === observer }
+    }
+
+    /// Observer token returned by `addRootViewObserver`.
+    ///
+    /// The provider only keeps a weak reference, so callers must hold the
+    /// handle for as long as they want events. Dropping it stops delivery.
+    private final class Observer: RootViewObserverHandle {
+        private weak var owner: DefaultRootViewProviding?
+        private let callback: (RootViewEvent) -> Void
         private var isCancelled = false
 
-        init(onCancel: @escaping () -> Void) {
-            self.onCancel = onCancel
+        init(owner: DefaultRootViewProviding, callback: @escaping (RootViewEvent) -> Void) {
+            self.owner = owner
+            self.callback = callback
         }
 
         func cancel() {
             guard !isCancelled else { return }
             isCancelled = true
-            onCancel()
+            owner?.remove(self)
+            owner = nil
+        }
+
+        func invoke(_ event: RootViewEvent) {
+            guard !isCancelled else { return }
+            callback(event)
+        }
+    }
+
+    private final class WeakObserver {
+        weak var observer: Observer?
+
+        init(_ observer: Observer) {
+            self.observer = observer
         }
     }
 }

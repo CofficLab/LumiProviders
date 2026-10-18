@@ -154,6 +154,11 @@ public protocol RootViewProviding: AnyObject, ObservableObject {
     func addOverlays(_ overlays: [RootOverlayItem])
     func removeOverlays(ids: Set<String>)
 
+    /// 注册根视图变更观察者。
+    ///
+    /// 调用方**必须持有**返回的句柄：provider 只保留弱引用，
+    /// 句柄被释放后回调停止投递（或在下次发事件时被清理）。
+    /// 需要提前停止时显式调用 `cancel()`，重复调用无副作用。
     func addRootViewObserver(
         _ callback: @escaping (RootViewEvent) -> Void
     ) -> any RootViewObserverHandle

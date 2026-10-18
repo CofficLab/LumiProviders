@@ -18,6 +18,23 @@ public final class DefaultContentViewProviding: ContentViewProviding {
     private var entries: [Entry] = []
     private var observers: [UUID: (ContentViewEvent) -> Void] = [:]
 
+    // MARK: - Internal State Projection
+
+    // 以下只读投影供 `@testable` 断言内部状态机使用，不参与业务逻辑：
+    // 渲染路径统一走 `renderedContent`，避免测试依赖 SwiftUI 视图结构。
+
+    /// 当前实际参与渲染的内容视图（entries 优先，回落到单内容通道）。
+    var currentRenderedContent: AnyView? { renderedContent }
+
+    /// entries 通道的 id，按 order 升序。
+    var renderedIDs: [String] { entries.map(\.id) }
+
+    /// entries 通道的 order，按当前排序。
+    var entryOrders: [Int] { entries.map(\.order) }
+
+    /// 单内容通道是否为空。
+    var singleContentIsNil: Bool { contentView == nil }
+
     public init() {}
 
     public func setDemoMode(_ enabled: Bool) {

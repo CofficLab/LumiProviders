@@ -225,6 +225,16 @@ let package = Package(
             ],
             path: "Sources/PluginToolbar"
         ),
+        .testTarget(
+            name: "PluginToolbarTests",
+            dependencies: [
+                "PluginToolbar",
+                "ProviderPluginManaging",
+                "ProviderToolbar",
+                .product(name: "KernelCore", package: "LumiKernel"),
+            ],
+            path: "Tests/PluginToolbarTests"
+        ),
         .target(
             name: "ProviderLogo",
             path: "Sources/ProviderLogo"

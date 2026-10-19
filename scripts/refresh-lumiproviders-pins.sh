@@ -1,22 +1,35 @@
 #!/bin/bash
 # Refresh the LumiProviders pin in every Package.resolved that pins it.
 #
-# All dependents declare `from: "x.y.z"`, so 1.11.0 is semver-compatible with
-# every existing constraint; only the resolved pin needs to move forward.
+# All dependents declare `from: "x.y.z"`, so any newer tag is semver-compatible
+# with every existing constraint; only the resolved pin needs to move forward.
 #
 # Each package runs under `timeout` (where available) so one slow dependency
 # graph cannot stall the whole sweep.
 #
 # Usage: scripts/refresh-lumiproviders-pins.sh [--dry-run] [--deadline N]
+#
+# LP_VERSION selects the target tag and defaults to the newest release tag, so a
+# new release is picked up without editing this script.
 
 set -uo pipefail
 
 COFFIC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+REPO="https://github.com/CofficLab/LumiProviders.git"
 DRY_RUN=0
 PER_PACKAGE_TIMEOUT="${LP_TIMEOUT:-120}"
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
 
 log() { printf '%s\n' "$*"; }
+
+# Default to the newest release tag rather than pinning a version in the script:
+# a hardcoded target silently marks every package as stale after each release.
+TARGET_VERSION="${LP_VERSION:-}"
+if [[ -z "$TARGET_VERSION" ]]; then
+  TARGET_VERSION="$(git ls-remote --tags --refs "$REPO" 2>/dev/null \
+    | awk '{print $2}' | sed 's|refs/tags/||' | sort -V | tail -1)"
+fi
+[[ -z "$TARGET_VERSION" ]] && { echo "Cannot resolve target version" >&2; exit 1; }
 
 # macOS ships bash 3.2 and no coreutils `timeout`; fall back to a plain run.
 RUNNER=""
@@ -52,15 +65,15 @@ if [[ $DRY_RUN -eq 1 ]]; then
   exit 0
 fi
 
-# Skip packages already on 1.11.0 so re-runs are cheap and idempotent.
+# Skip packages already on the target version so re-runs are cheap and idempotent.
 : > "$WORK/pending.txt"
 while IFS= read -r dir; do
   [[ -z "$dir" ]] && continue
-  if python3 - "$dir/Package.resolved" <<'PY' 2>/dev/null
+  if python3 - "$dir/Package.resolved" "$TARGET_VERSION" <<'PY' 2>/dev/null
 import json, sys
 d = json.load(open(sys.argv[1]))
 sys.exit(0 if any("lumiproviders" in p.get("identity","").lower()
-                  and p.get("state",{}).get("version") == "1.11.0"
+                  and p.get("state",{}).get("version") == sys.argv[2]
                   for p in d.get("pins", [])) else 1)
 PY
   then
@@ -70,7 +83,7 @@ PY
 done < "$WORK/targets.txt"
 
 PENDING=$(wc -l < "$WORK/pending.txt" | tr -d ' ')
-log "$PENDING packages still need an update"
+log "$PENDING packages need an update to $TARGET_VERSION"
 
 ok=0; fail=0; skip=0; timedout=0
 : > "$WORK/failed.txt"
@@ -102,8 +115,13 @@ while IFS= read -r dir; do
 done < "$WORK/pending.txt"
 
 log ""
+log "target version: $TARGET_VERSION"
 log "updated=$ok  skipped=$skip  failed=$fail  timeout=$timedout"
 if [[ -s "$WORK/failed.txt" ]]; then
   log "Needs manual attention:"
   sed 's/^/  /' "$WORK/failed.txt"
 fi
+
+# Fail loudly when packages need attention, so CI does not read a broken sweep
+# as a clean run. A timeout counts as needing attention, not as success.
+[[ $((fail + timedout)) -eq 0 ]]

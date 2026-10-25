@@ -33,6 +33,7 @@ let package = Package(
         .library(name: "PluginToolbar", targets: ["PluginToolbar"]),
         .library(name: "ProviderLogo", targets: ["ProviderLogo"]),
         .library(name: "ProviderUninstall", targets: ["ProviderUninstall"]),
+        .library(name: "ProviderPromptSuggestion", targets: ["ProviderPromptSuggestion"]),
     ],
     dependencies: [
         .package(url: "https://github.com/CofficLab/LumiKernel.git", from: "1.0.0"),
@@ -325,6 +326,15 @@ let package = Package(
             name: "ProviderUninstallTests",
             dependencies: ["ProviderUninstall"],
             path: "Tests/ProviderUninstallTests"
+        ),
+        .target(
+            name: "ProviderPromptSuggestion",
+            path: "Sources/ProviderPromptSuggestion"
+        ),
+        .testTarget(
+            name: "ProviderPromptSuggestionTests",
+            dependencies: ["ProviderPromptSuggestion"],
+            path: "Tests/ProviderPromptSuggestionTests"
         ),
     ]
 )

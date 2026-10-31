@@ -37,6 +37,19 @@ public enum StoreTier: Int, Comparable, Sendable, Codable, CaseIterable {
 
     /// 是否为旗舰档及以上。
     public var isUltimateOrHigher: Bool { self >= .ultimate }
+
+    /// 档位的默认显示名（英文）。
+    ///
+    /// 共享契约层只提供**默认英文文案**，各 App 可以覆写为自己的本地化版本
+    /// （见各 App 的 `StoreTier+Display` 扩展）。这样消费方（如限额提示）
+    /// 在任何项目里都能拿到一个可用的名称，而不必自己判断档位。
+    public var defaultDisplayName: String {
+        switch self {
+        case .none: return "Free version"
+        case .pro: return "Pro version"
+        case .ultimate: return "Ultimate version"
+        }
+    }
 }
 
 // MARK: - Store Entitlement Snapshot

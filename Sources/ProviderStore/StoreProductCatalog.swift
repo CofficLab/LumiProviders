@@ -57,3 +57,35 @@ public struct StaticStoreProductCatalog: StoreProductCatalog {
         self.productTiers = productTiers
     }
 }
+
+// MARK: - Entitlement Derivation
+
+public extension StoreProductCatalog {
+    /// 由「有效订阅商品 ID + 最晚到期时间」推导权益快照。
+    ///
+    /// 这是**机制结果 → 产品语义**的标准翻译步骤：
+    /// 机制层（`KitStoreKit`）只回答「哪些订阅商品在有效期内、最晚到什么时候」，
+    /// 「这些商品对应什么档位」是商品表（产品语义）说了算。
+    ///
+    /// - Parameters:
+    ///   - activeProductIDs: 当前有效的订阅商品 ID。
+    ///   - latestExpiration: 有效订阅的最晚到期时间。
+    /// - Returns: 权益快照；无可用档位时为 `.none`。
+    ///
+    /// ## 未登记的商品会被跳过
+    ///
+    /// 商品 ID 不在商品表里时查不到档位（默认 `.none`），因此不会参与档位
+    /// 取最大值——这正是「用户付了钱，权益没到账」的防线所在。
+    func entitlement(
+        activeProductIDs: [String],
+        latestExpiration: Date?
+    ) -> StoreEntitlementSnapshot {
+        let tier = activeProductIDs
+            .map { tier(for: $0) }
+            .max() ?? .none
+
+        guard tier > .none else { return .none }
+
+        return StoreEntitlementSnapshot(tier: tier, expiresAt: latestExpiration)
+    }
+}

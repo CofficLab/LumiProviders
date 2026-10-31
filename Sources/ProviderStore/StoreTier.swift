@@ -98,6 +98,14 @@ public struct StoreEntitlementSnapshot: Sendable, Equatable, Codable {
         return !isExpired
     }
 
+    /// 是否**不**满足付费档位条件。
+    ///
+    /// 取反判断在 UI 里很常见（「免费用户才显示限额提示」），显式提供比
+    /// 到处写 `!snapshot.isProOrHigher` 更清晰。
+    public var isNotProOrHigher: Bool {
+        !isProOrHigher
+    }
+
     /// 生效档位：未过期才按 `tier` 生效，否则回落到免费档。
     public var effectiveTier: StoreTier {
         isProOrHigher ? tier : .none

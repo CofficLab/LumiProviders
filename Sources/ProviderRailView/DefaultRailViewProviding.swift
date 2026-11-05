@@ -14,9 +14,11 @@ public final class DefaultRailViewProviding: RailViewProviding {
     public private(set) var activeTabID: String?
     public private(set) var hasVisibleTabs = false
     public private(set) var sections: [RailSectionItem] = []
+    public private(set) var bottomItems: [RailBottomItem] = []
     public private(set) var railWidth: RailViewWidth
 
     public var hasVisibleSections: Bool { !sections.isEmpty }
+    public var hasVisibleBottomItems: Bool { !bottomItems.isEmpty }
     public var railVisibilityPublisher: AnyPublisher<Bool, Never> {
         railVisibilitySubject.eraseToAnyPublisher()
     }
@@ -82,6 +84,26 @@ public final class DefaultRailViewProviding: RailViewProviding {
 
     public func removeSections(ids: Set<String>) {
         registerSections(sections.filter { !ids.contains($0.id) })
+    }
+
+    public func registerBottomItems(_ newItems: [RailBottomItem]) {
+        let oldIDs = bottomItems.map(\.id)
+        let newIDs = newItems.map(\.id)
+        bottomItems = newItems.sorted { $0.order < $1.order }
+        guard oldIDs != newIDs else { return }
+        notify(.bottomItemsChanged(bottomItems))
+    }
+
+    public func addBottomItems(_ newItems: [RailBottomItem]) {
+        var merged = bottomItems
+        for item in newItems where !merged.contains(where: { $0.id == item.id }) {
+            merged.append(item)
+        }
+        registerBottomItems(merged)
+    }
+
+    public func removeBottomItems(ids: Set<String>) {
+        registerBottomItems(bottomItems.filter { !ids.contains($0.id) })
     }
 
     public func activateTab(id: String?) {
@@ -344,6 +366,8 @@ private struct RailView: View {
                     section.makeView()
                         .frame(maxWidth: .infinity)
                 }
+
+                RailBottomView(items: provider.bottomItems)
             }
             .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
             .background(theme.surface)
@@ -374,6 +398,7 @@ private struct RailView: View {
                 }
 
                 // 内容区：激活 tab 视图；未命中时回退首个 tab。
+                // 内容区吃掉除底部固定项以外的全部高度，底部固定项因此始终贴在底边。
                 if let active = visibleTabs.first(where: { $0.id == provider.activeTabID }) {
                     active.makeView()
                         .id(active.id)
@@ -383,9 +408,40 @@ private struct RailView: View {
                         .id(first.id)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
+
+                RailBottomView(items: provider.bottomItems)
             }
             .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
             .background(theme.surface)
+        }
+    }
+}
+
+/// Rail 底部固定区：承载插件注入的跨标签常驻状态信息。
+///
+/// 固定在 Rail 内容区底部，宽度随 Rail 宽度伸缩；Rail 不可见时随 Rail 一并消失。
+/// 高度默认与 ChatSection 的 action bar 对齐（`AppPanelChromeMetrics.actionBarHeight`），
+/// 插件可在 `RailBottomItem.height` 中声明其它高度。
+@MainActor
+private struct RailBottomView: View {
+    let items: [RailBottomItem]
+
+    var body: some View {
+        if !items.isEmpty {
+            VStack(spacing: 0) {
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    item.makeView()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: item.height ?? AppPanelChromeMetrics.actionBarHeight)
+                        .clipped()
+
+                    if index < items.count - 1 {
+                        AppDivider()
+                    }
+                }
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
         }
     }
 }

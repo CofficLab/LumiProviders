@@ -16,6 +16,7 @@ public enum RailViewProvidingEvent {
     case visibleTabIDChanged(String?)
     case visibilityChanged(Bool)
     case widthChanged(RailViewWidth)
+    case bottomItemsChanged([RailBottomItem])
     case didAppear
 }
 
@@ -176,6 +177,12 @@ public protocol RailViewProviding: AnyObject {
     /// 当前是否存在 Rail 区块。
     var hasVisibleSections: Bool { get }
 
+    /// Rail 底部固定项（跨标签常驻的状态信息）。
+    var bottomItems: [RailBottomItem] { get }
+
+    /// 当前是否存在 Rail 底部固定项。
+    var hasVisibleBottomItems: Bool { get }
+
     /// Rail 可见性变化发布器（tab 或区块任一可见时为 true）。
     var railVisibilityPublisher: AnyPublisher<Bool, Never> { get }
 
@@ -190,6 +197,15 @@ public protocol RailViewProviding: AnyObject {
 
     /// 按 id 撤回 Rail 区块。
     func removeSections(ids: Set<String>)
+
+    /// 替换全部 Rail 底部固定项。
+    func registerBottomItems(_ items: [RailBottomItem])
+
+    /// 追加 Rail 底部固定项，不覆盖其他插件的贡献。
+    func addBottomItems(_ items: [RailBottomItem])
+
+    /// 按 id 撤回 Rail 底部固定项。
+    func removeBottomItems(ids: Set<String>)
 
     /// 当前 Rail 宽度（可能是插件推荐值，也可能是用户保存值）。
     var railWidth: RailViewWidth { get }
@@ -257,6 +273,10 @@ public extension RailViewProviding {
 
     var hasVisibleSections: Bool { !sections.isEmpty }
 
+    var bottomItems: [RailBottomItem] { [] }
+
+    var hasVisibleBottomItems: Bool { !bottomItems.isEmpty }
+
     var railVisibilityPublisher: AnyPublisher<Bool, Never> {
         Just(hasVisibleTabs || hasVisibleSections).eraseToAnyPublisher()
     }
@@ -270,6 +290,12 @@ public extension RailViewProviding {
     func addSections(_ sections: [RailSectionItem]) {}
 
     func removeSections(ids: Set<String>) {}
+
+    func registerBottomItems(_ items: [RailBottomItem]) {}
+
+    func addBottomItems(_ items: [RailBottomItem]) {}
+
+    func removeBottomItems(ids: Set<String>) {}
 
     var railWidth: RailViewWidth { .standard }
 

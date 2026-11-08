@@ -5,6 +5,8 @@ import SwiftUI
 /// `StatusBarProviding` 的默认实现：持有注入的 `StatusBarItem`，
 /// 并按 `placement`（leading / center / trailing）渲染为 28pt 高的状态栏。
 ///
+/// 没有任何状态栏项时整条隐藏（不占高度）；运行时撤回最后一项也会随之消失。
+///
 /// 视觉与旧版 GitOK 状态栏对齐：
 /// - 高度 28pt，三段式布局（leading / center / trailing，段间 Spacer）；
 /// - 背景使用 `theme.surface`，顶部 1px 主题分隔线；
@@ -42,29 +44,33 @@ private struct StatusBarView: View {
         let center = items.filter { $0.placement == .center }
         let trailing = items.filter { $0.placement == .trailing }
 
-        HStack(spacing: 8) {
-            group(leading)
+        if items.isEmpty {
+            EmptyView()
+        } else {
+            HStack(spacing: 8) {
+                group(leading)
 
-            Spacer(minLength: 12)
+                Spacer(minLength: 12)
 
-            group(center)
+                group(center)
 
-            Spacer(minLength: 12)
+                Spacer(minLength: 12)
 
-            group(trailing)
+                group(trailing)
+            }
+            .padding(.horizontal, 10)
+            .frame(maxWidth: .infinity)
+            .frame(height: height)
+            .background {
+                theme.surface.opacity(0.96)
+            }
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(theme.divider)
+                    .frame(height: 1)
+            }
+            .foregroundStyle(theme.statusBarItemForeground)
         }
-        .padding(.horizontal, 10)
-        .frame(maxWidth: .infinity)
-        .frame(height: height)
-        .background {
-            theme.surface.opacity(0.96)
-        }
-        .overlay(alignment: .top) {
-            Rectangle()
-                .fill(theme.divider)
-                .frame(height: 1)
-        }
-        .foregroundStyle(theme.statusBarItemForeground)
     }
 
     private func group(_ items: [StatusBarItem]) -> some View {

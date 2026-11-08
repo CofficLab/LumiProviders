@@ -18,6 +18,8 @@ let package = Package(
         .library(name: "ProviderCommand", targets: ["ProviderCommand"]),
         .library(name: "ProviderContentView", targets: ["ProviderContentView"]),
         .library(name: "ProviderDocsView", targets: ["ProviderDocsView"]),
+        .library(name: "ProviderMenuBar", targets: ["ProviderMenuBar"]),
+        .library(name: "MenuBarHostKit", targets: ["MenuBarHostKit"]),
         .library(name: "ProviderNetwork", targets: ["ProviderNetwork"]),
         .library(name: "ProviderProject", targets: ["ProviderProject"]),
         .library(name: "ProviderIdleTime", targets: ["ProviderIdleTime"]),
@@ -116,6 +118,27 @@ let package = Package(
             name: "ProviderDocsViewTests",
             dependencies: ["ProviderDocsView"],
             path: "Tests/ProviderDocsViewTests"
+        ),
+        .target(
+            name: "ProviderMenuBar",
+            path: "Sources/ProviderMenuBar"
+        ),
+        .testTarget(
+            name: "ProviderMenuBarTests",
+            dependencies: [
+                "ProviderMenuBar",
+                .product(name: "KernelCore", package: "LumiKernel"),
+            ],
+            path: "Tests/ProviderMenuBarTests"
+        ),
+        .target(
+            name: "MenuBarHostKit",
+            path: "Sources/MenuBarHostKit"
+        ),
+        .testTarget(
+            name: "MenuBarHostKitTests",
+            dependencies: ["MenuBarHostKit"],
+            path: "Tests/MenuBarHostKitTests"
         ),
         .target(
             name: "ProviderNetwork",

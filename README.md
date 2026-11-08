@@ -1,5 +1,7 @@
 # LumiProviders
 
+📖 English | [中文版](README_zh.md)
+
 Shared provider contracts and default implementations used by Coffic Lab apps.
 
 ## Products

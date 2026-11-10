@@ -15,6 +15,7 @@ struct ProviderActivityBarTests {
         #expect(item.title == "Files")
         #expect(item.systemImage == "folder")
         #expect(!item.preservesContentFooter)
+        #expect(!item.preservesContentHeader)
 
         let editorItem = ActivityBarItem(
             id: "editor",
@@ -23,6 +24,24 @@ struct ProviderActivityBarTests {
             preservesContentFooter: true
         )
         #expect(editorItem.preservesContentFooter)
+    }
+
+    @Test("ActivityBarItem 可声明保留 Content Header")
+    func itemPreservesContentHeader() {
+        let filesItem = ActivityBarItem(
+            id: "files",
+            title: "Files",
+            systemImage: "folder",
+            preservesContentHeader: true
+        )
+        #expect(filesItem.preservesContentHeader)
+
+        let chatItem = ActivityBarItem(
+            id: "chat",
+            title: "Chat",
+            systemImage: "bubble"
+        )
+        #expect(!chatItem.preservesContentHeader, "默认入口不保留 Content Header")
     }
 
     @Test("DefaultActivityBarProviding 注入 items 后可读取且按 order 排序")

@@ -8,6 +8,7 @@ Lumi 家族各应用共享的 provider 契约与默认实现。
 
 - `ProviderCommand`：应用命令注册与分发契约。
 - `ProviderContentView`：主内容视图的注册与渲染。
+- `ProviderDiagnostics`：面向用户支持界面的诊断导出契约。
 - `ProviderDocsView`：插件贡献的关于页与手册条目。
 - `ProviderRailView`：共享 rail 标签页的注册、过滤与渲染。
 - `ProviderPluginControl`：构建于 `LumiKernel` 之上的插件启用与控制契约。
@@ -18,6 +19,7 @@ Lumi 家族各应用共享的 provider 契约与默认实现。
 - `ProviderTheme`：共享主题值、内置调色板与主题选择状态。
 - `ProviderToast`：非阻塞 toast 展示契约。
 - `ProviderToolbar`：共享工具栏项的注册、过滤与渲染。
+- `ProviderUninstall`：应用自有数据的清除契约与默认扫描清除实现。
 
 每个 product 都是独立的 Swift 模块，可分别加入 target。
 

@@ -2,7 +2,7 @@
 
 📖 English | [中文版](README_zh.md)
 
-Shared provider contracts and default implementations used by Coffic Lab apps.
+Shared provider contracts and default implementations used by Lumi family apps.
 
 ## Products
 
@@ -61,9 +61,9 @@ targets: [
 
 ## ProviderStore
 
-`ProviderStore` defines the in-app purchase and subscription contracts that Coffic Lab apps share: subscription tiers, entitlement snapshots, entitlement observation, purchase presentation, and the product catalog contract.
+`ProviderStore` defines the in-app purchase and subscription contracts that Lumi family apps share: subscription tiers, entitlement snapshots, entitlement observation, purchase presentation, and the product catalog contract.
 
-The module is deliberately **contract-only**. It depends on Foundation alone — no StoreKit, no SwiftUI, no LumiUI, no `KernelCore` — so it can be adopted by any target (including unit tests) without dragging a purchase framework into the dependency graph. The StoreKit 2 lifecycle (transaction listening, entitlement calibration, product fetching, verification) lives in the separate [LumiStoreKit](https://github.com/CofficLab/LumiStoreKit) tool package.
+The module is deliberately **contract-only**. It depends on Foundation alone — no StoreKit, no SwiftUI, no LumiUI, no `KernelCore` — so it can be adopted by any target (including unit tests) without dragging a purchase framework into the dependency graph. The StoreKit 2 lifecycle (transaction listening, entitlement calibration, product fetching, verification) lives in the separate [LumiStoreKit](https://github.com/lumi-softworks/LumiStoreKit) tool package.
 
 ### Types
 

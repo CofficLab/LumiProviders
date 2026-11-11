@@ -2,7 +2,7 @@
 
 📖 [中文版](README_zh.md) | [English](README.md)
 
-Coffic Lab 各应用共享的 provider 契约与默认实现。
+Lumi 家族各应用共享的 provider 契约与默认实现。
 
 ## Products
 
@@ -65,13 +65,13 @@ targets: [
 
 ## ProviderStore
 
-`ProviderStore` 定义 Coffic Lab 应用共享的应用内购买与订阅契约：订阅层级、
+`ProviderStore` 定义 Lumi 家族应用共享的应用内购买与订阅契约：订阅层级、
 权益快照、权益观察、购买界面展示以及产品目录契约。
 
 该模块刻意保持**纯契约**。它只依赖 Foundation —— 不依赖 StoreKit、SwiftUI、
 LumiUI 或 `KernelCore` —— 因此可以被任何 target（包括单元测试）采用，而不会
 把购买框架拖进依赖图。StoreKit 2 生命周期（交易监听、权益校准、产品获取、
-验证）位于独立的 [LumiStoreKit](https://github.com/CofficLab/LumiStoreKit) 工具包。
+验证）位于独立的 [LumiStoreKit](https://github.com/lumi-softworks/LumiStoreKit) 工具包。
 
 ### 类型
 

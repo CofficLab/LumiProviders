@@ -39,13 +39,14 @@ public struct DefaultUninstallKeychainManager: UninstallKeychainManaging {
     }
 }
 
-/// Default Lumi uninstall implementation.
+/// Default uninstall implementation.
 ///
 /// The provider intentionally uses exact names and boundary checks. It never
 /// performs a fuzzy scan such as deleting every directory containing "Lumi".
 public final class DefaultUninstallProvider: UninstallProviding, @unchecked Sendable {
     private let locations: UninstallLocations
     private let scope: UninstallScope
+    private let branding: UninstallBranding
     private let persistentDomainRemover: any UninstallPersistentDomainRemoving
     private let keychainManager: any UninstallKeychainManaging
     private let fileManager: FileManager
@@ -53,12 +54,14 @@ public final class DefaultUninstallProvider: UninstallProviding, @unchecked Send
     public init(
         locations: UninstallLocations = .live(),
         scope: UninstallScope = .live(),
+        branding: UninstallBranding = .lumi,
         persistentDomainRemover: any UninstallPersistentDomainRemoving = DefaultUninstallPersistentDomainRemover(),
         keychainManager: any UninstallKeychainManaging = DefaultUninstallKeychainManager(),
         fileManager: FileManager = .default
     ) {
         self.locations = locations
         self.scope = scope
+        self.branding = branding
         self.persistentDomainRemover = persistentDomainRemover
         self.keychainManager = keychainManager
         self.fileManager = fileManager
@@ -69,7 +72,9 @@ public final class DefaultUninstallProvider: UninstallProviding, @unchecked Send
     }
 
     public func uninstall(options: UninstallOptions) async throws -> UninstallResult {
-        guard options.confirmation == UninstallOptions.confirmationPhrase else {
+        // 确认短语按品牌校验：Lumi 宿主传 Lumi 短语，Wakey 宿主传 Wakey 短语。
+        // 短语不匹配时拒绝执行，避免用户在别的应用里误触发了卸载。
+        guard options.confirmation == branding.confirmationPhrase else {
             throw UninstallError.invalidConfirmation
         }
 
@@ -86,7 +91,7 @@ public final class DefaultUninstallProvider: UninstallProviding, @unchecked Send
                 failures.append(UninstallFailure(
                     targetID: target.id,
                     location: target.location,
-                    message: error.localizedDescription
+                    message: Self.message(for: error, branding: branding)
                 ))
             }
         }
@@ -109,7 +114,7 @@ public final class DefaultUninstallProvider: UninstallProviding, @unchecked Send
                 failures.append(UninstallFailure(
                     targetID: applicationTarget.id,
                     location: applicationTarget.location,
-                    message: error.localizedDescription
+                    message: Self.message(for: error, branding: branding)
                 ))
             }
         }
@@ -145,7 +150,7 @@ public final class DefaultUninstallProvider: UninstallProviding, @unchecked Send
             appendPath(
                 id: "application-support.\(bundleID)",
                 url: url,
-                kind: bundleID == "com.coffic.Lumi" ? .legacyData : .applicationData
+                kind: bundleID == branding.legacyBundleIdentifier ? .legacyData : .applicationData
             )
         }
 
@@ -320,5 +325,18 @@ public final class DefaultUninstallProvider: UninstallProviding, @unchecked Send
                 try fileManager.removeItem(at: url)
             }
         }
+    }
+
+    // MARK: - Error messages
+
+    /// 把错误转成带品牌信息的文案。
+    ///
+    /// `UninstallError` 的描述里带有品牌名（"不属于 Lumi 白名单"），需要
+    /// 按当前宿主的品牌渲染；其它错误沿用系统文案。
+    private static func message(for error: Error, branding: UninstallBranding) -> String {
+        if let uninstallError = error as? UninstallError {
+            return uninstallError.errorDescription(branding: branding) ?? error.localizedDescription
+        }
+        return error.localizedDescription
     }
 }

@@ -8,6 +8,7 @@ Shared provider contracts and default implementations used by Lumi family apps.
 
 - `ProviderCommand`: application command registration and dispatch contracts.
 - `ProviderContentView`: main content view registration and rendering.
+- `ProviderDiagnostics`: diagnostic export contracts for user-facing support surfaces.
 - `ProviderDocsView`: plugin-contributed about and manual entries.
 - `ProviderRailView`: shared rail tab registration, filtering, and rendering.
 - `ProviderPluginControl`: plugin enablement and control contracts built on `LumiKernel`.
@@ -18,6 +19,7 @@ Shared provider contracts and default implementations used by Lumi family apps.
 - `ProviderTheme`: shared theme values, built-in palettes, and theme selection state.
 - `ProviderToast`: non-blocking toast presentation contracts.
 - `ProviderToolbar`: shared toolbar item registration, filtering, and rendering.
+- `ProviderUninstall`: app-owned data removal contracts and the default scan-and-remove implementation.
 
 Each product is an independent Swift module and can be added to a target separately.
 

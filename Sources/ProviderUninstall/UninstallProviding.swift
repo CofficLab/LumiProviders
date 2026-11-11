@@ -4,6 +4,13 @@ public extension Notification.Name {
     /// Posted immediately before Lumi-owned data is removed.
     /// Components with asynchronous file writers should flush and stop here.
     static let lumiWillUninstall = Notification.Name("com.coffic.lumi.uninstall.will-uninstall")
+
+    /// 品牌专属的「即将卸载」通知名。
+    ///
+    /// 同族应用（如 Wakey）用自己的通知名，避免两个应用的监听器互相响应。
+    static func willUninstall(branding: UninstallBranding) -> Notification.Name {
+        Notification.Name(branding.willUninstallNotificationName)
+    }
 }
 
 /// The categories of data owned by Lumi that can be removed by the uninstall flow.
@@ -16,17 +23,24 @@ public enum UninstallTargetKind: String, Codable, Sendable, Equatable {
     case keychain
     case application
 
-    public var displayName: String {
+    /// 目标类型的显示名。
+    ///
+    /// 品牌相关的两个分支（应用数据与应用本体）需要注入品牌文案；未传
+    /// `branding` 时回退到 Lumi 的取值。
+    public func displayName(branding: UninstallBranding = .lumi) -> String {
         switch self {
-        case .applicationData: return "Lumi 数据"
+        case .applicationData: return branding.applicationDataDisplayName
         case .legacyData: return "旧版本数据"
         case .caches: return "缓存"
         case .appGroup: return "Finder 扩展数据"
         case .preferences: return "偏好设置"
         case .keychain: return "Keychain 凭据"
-        case .application: return "Lumi 应用"
+        case .application: return branding.applicationDisplayName
         }
     }
+
+    /// Lumi 品牌的显示名，保留给未注入品牌的既有调用点。
+    public var displayName: String { displayName(branding: .lumi) }
 }
 
 /// A single deletion candidate discovered by a preflight scan.
@@ -75,7 +89,8 @@ public struct UninstallScan: Codable, Sendable, Equatable {
 
 /// Options explicitly chosen by the user in the final confirmation step.
 public struct UninstallOptions: Sendable, Equatable {
-    public static let confirmationPhrase = "删除 Lumi 数据"
+    /// Lumi 品牌的确认短语，保留给未注入品牌的既有调用点。
+    public static let confirmationPhrase = UninstallBranding.lumi.confirmationPhrase
 
     public let confirmation: String
     public let removeKeychainCredentials: Bool
@@ -129,11 +144,19 @@ public enum UninstallError: LocalizedError, Sendable, Equatable {
     case unsafeTarget(String)
 
     public var errorDescription: String? {
+        errorDescription(branding: .lumi)
+    }
+
+    /// 错误描述。
+    ///
+    /// 「不属于白名单」的错误信息里带有品牌名，需要随宿主注入；未传
+    /// `branding` 时回退到 Lumi 的取值。
+    public func errorDescription(branding: UninstallBranding = .lumi) -> String? {
         switch self {
         case .invalidConfirmation:
             return "确认文本不正确，未执行卸载。"
         case let .unsafeTarget(path):
-            return "拒绝删除不属于 Lumi 白名单的路径：\(path)"
+            return "拒绝删除不属于 \(branding.whitelistDescriptionName) 白名单的路径：\(path)"
         }
     }
 }
@@ -253,6 +276,43 @@ public struct UninstallScope: Sendable, Equatable {
 
     public static func live(bundleIdentifier: String? = Bundle.main.bundleIdentifier) -> Self {
         bundleIdentifier == "com.coffic.lumi.debug" ? .debug : .production
+    }
+
+    /// 按品牌与构建类型生成白名单。
+    ///
+    /// 同族应用（如 Wakey）的 bundle id、App Group、偏好域与遗留目录名都与
+    /// Lumi 不同，因此白名单必须由宿主提供，不能沿用 Lumi 的取值。
+    ///
+    /// Debug 与 Release 不共享文件系统目标：Debug 只清理自己的 `.debug`
+    /// bundle id，不碰 Release 的遗留 bundle id 与遗留目录。
+    ///
+    /// - Parameters:
+    ///   - branding: 品牌配置，提供 bundle id 前缀与遗留目录名。
+    ///   - isDebug: 是否为 Debug 构建。
+    public static func branded(
+        branding: UninstallBranding,
+        isDebug: Bool
+    ) -> Self {
+        if isDebug {
+            let bundleIdentifier = "\(branding.bundleIdentifierPrefix).debug"
+            return Self(
+                bundleIdentifiers: [bundleIdentifier],
+                appGroupIdentifiers: branding.debugAppGroupIdentifiers,
+                preferenceDomains: [bundleIdentifier],
+                cacheBundleIdentifiers: [bundleIdentifier],
+                legacyApplicationSupportDirectories: [],
+                keychainServices: branding.debugKeychainServices
+            )
+        }
+
+        return Self(
+            bundleIdentifiers: [branding.bundleIdentifierPrefix, branding.legacyBundleIdentifier],
+            appGroupIdentifiers: branding.appGroupIdentifiers,
+            preferenceDomains: [branding.bundleIdentifierPrefix, branding.legacyBundleIdentifier],
+            cacheBundleIdentifiers: [branding.bundleIdentifierPrefix, branding.legacyBundleIdentifier],
+            legacyApplicationSupportDirectories: branding.legacyApplicationSupportDirectories,
+            keychainServices: branding.keychainServices
+        )
     }
 }
 

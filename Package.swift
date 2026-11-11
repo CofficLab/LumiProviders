@@ -35,6 +35,7 @@ let package = Package(
         .library(name: "PluginToolbar", targets: ["PluginToolbar"]),
         .library(name: "ProviderLogo", targets: ["ProviderLogo"]),
         .library(name: "ProviderUninstall", targets: ["ProviderUninstall"]),
+        .library(name: "ProviderDiagnostics", targets: ["ProviderDiagnostics"]),
         .library(name: "ProviderPromptSuggestion", targets: ["ProviderPromptSuggestion"]),
         .library(name: "ProviderStore", targets: ["ProviderStore"]),
     ],
@@ -350,6 +351,15 @@ let package = Package(
             name: "ProviderUninstallTests",
             dependencies: ["ProviderUninstall"],
             path: "Tests/ProviderUninstallTests"
+        ),
+        .target(
+            name: "ProviderDiagnostics",
+            path: "Sources/ProviderDiagnostics"
+        ),
+        .testTarget(
+            name: "ProviderDiagnosticsTests",
+            dependencies: ["ProviderDiagnostics"],
+            path: "Tests/ProviderDiagnosticsTests"
         ),
         .target(
             name: "ProviderPromptSuggestion",
